@@ -1,3 +1,4 @@
+import argparse
 import random
 import json
 import re
@@ -7,42 +8,7 @@ from sentence_transformers.util import semantic_search, cos_sim
 from tqdm.auto import tqdm
 from datasets import load_dataset
 
-
-def clean_question(text):
-    result = cleanup_references(text)
-    result = result.replace("\n", " ")
-    result = re.sub(r"\s\s+", " ", result)
-    result = result.replace("[deleted]", "")
-    return result.lower().strip()
-
-
-def cleanup_references(text):
-    # URL reference where we need to remove both the link text and URL
-    # ...and this letter is used by most biographers as the cornerstone of Lee's personal
-    # views on slavery ([1](_URL_2_ & pg=PA173), [2](_URL_1_), [3](_URL_5_)).
-    # ...and this letter is used by most biographers as the cornerstone of Lee's personal views on slavery.
-    result = re.sub(r"[\(\s]*\[\d+\]\([^)]+\)[,)]*", "", text, 0, re.MULTILINE)
-
-    # URL reference where we need to preserve link text but remove URL
-    # At the outbreak of the Civil War, [Leyburn left his church](_URL_19_) and joined the South.
-    # At the outbreak of the Civil War, Leyburn left his church and joined the South.
-    result = re.sub(r"\[([^]]+)\]\([^)]+\)", "\\1", result, 0, re.MULTILINE)
-
-    # lastly remove just dangling _URL_[0-9]_ URL references
-    result = re.sub(r"_URL_\d_", "", result, 0, re.MULTILINE)
-    return result
-
-
-def clean_answer(text):
-    result = cleanup_references(text)
-    result = result.replace("\n", " ")
-    result = re.sub(r"\s\s+", " ", result)
-    result = re.sub(r"BULLET::::-", "", result)
-    return trim(result.strip())
-
-
-def trim(text, word_count: int = 100):
-    return " ".join(text.split(" ")[:word_count])
+from common import clean_answer, clean_question
 
 
 def find_hard_negative_ctxs(dataset, dataset_embeddings, embedding_index: int,
@@ -82,8 +48,8 @@ def find_negative_ctxs(dataset, dataset_embeddings, embedding_index: int,
     return negative_ctxs[:min_count]
 
 
-def main():
-    embedder = SentenceTransformer('all-mpnet-base-v2')
+def generate_dpr_training_file(args):
+    embedder = SentenceTransformer(args.embedding_model)
 
     eli5_train_set = load_dataset("vblagoje/eli5v1", split="train")
     eli5_validation_set = load_dataset("vblagoje/eli5v1", split="validation")
@@ -125,4 +91,13 @@ def main():
         print(f"Skipped {skip_count} questions")
 
 
-main()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Creates DPR training file from LFQA dataset")
+    parser.add_argument(
+        "--embedding_model",
+        default="all-mpnet-base-v2",
+        help="Embedding model to use for question encoding and semantic search",
+    )
+
+    main_args, _ = parser.parse_known_args()
+    generate_dpr_training_file(main_args)
