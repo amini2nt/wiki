@@ -1,62 +1,30 @@
-import os
-import json
 import argparse
+import json
+import os
+
 import torch
-from tqdm.auto import tqdm
-from transformers import AutoTokenizer, AutoModel, AutoModelForSeq2SeqLM, DPRContextEncoder, DPRQuestionEncoder
-
 from datasets import load_dataset
+from tqdm.auto import tqdm
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, DPRQuestionEncoder
+
+from common import articles_to_paragraphs, kilt_wikipedia_columns
+from common import kilt_wikipedia_paragraph_columns as columns
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--kilt_input_file', default="./eli5-dev-kilt.jsonl", type=str)
-    parser.add_argument('--kilt_output_file', default="./eli5-predicted_retrieval.jsonl", type=str)
-    args = parser.parse_args()
-
-    assert os.path.isfile(args.kilt_input_file), f"Input file {args.kilt_file} couldn't be loaded"
-
+def eval_generate(args):
     device = ("cuda" if torch.cuda.is_available() else "cpu")
-    question_encoder_name = "vblagoje/dpr-question_encoder-single-lfqa-base"
-    question_tokenizer = AutoTokenizer.from_pretrained(question_encoder_name)
-
-    question_model = DPRQuestionEncoder.from_pretrained(question_encoder_name).to(device)
+    question_tokenizer = AutoTokenizer.from_pretrained(args.question_encoder_name)
+    question_model = DPRQuestionEncoder.from_pretrained(args.question_encoder_name).to(device)
     _ = question_model.eval()
 
     eli5_tokenizer = AutoTokenizer.from_pretrained('vblagoje/bart_eli5')
     eli5_model = AutoModelForSeq2SeqLM.from_pretrained('vblagoje/bart_eli5').to(device)
     _ = eli5_model.eval()
 
-    index_file_name = "../data/kilt_dpr_wikipedia.faiss"
     min_snippet_length = 20
     topk = 21
+    min_chars_per_passage = 200
     kilt_wikipedia = load_dataset("kilt_wikipedia", split="full")
-    kilt_wikipedia_columns = ['kilt_id', 'wikipedia_id', 'wikipedia_title', 'text', 'anchors', 'categories',
-                              'wikidata_info', 'history']
-
-    def articles_to_paragraphs(examples):
-        ids, titles, sections, texts, start_ps, end_ps, start_cs, end_cs = [], [], [], [], [], [], [], []
-        for bidx, example in enumerate(examples["text"]):
-            last_section = ""
-            for idx, p in enumerate(example["paragraph"]):
-                if "Section::::" in p:
-                    last_section = p
-                ids.append(examples["wikipedia_id"][bidx])
-                titles.append(examples["wikipedia_title"][bidx])
-                sections.append(last_section)
-                texts.append(p)
-                start_ps.append(idx)
-                end_ps.append(idx)
-                start_cs.append(0)
-                end_cs.append(len(p))
-
-        return {"wikipedia_id": ids, "title": titles,
-                "section": sections, "text": texts,
-                "start_paragraph_id": start_ps, "end_paragraph_id": end_ps,
-                "start_character": start_cs,
-                "end_character": end_cs
-                }
-
     kilt_wikipedia_paragraphs = kilt_wikipedia.map(articles_to_paragraphs, batched=True,
                                                    remove_columns=kilt_wikipedia_columns,
                                                    batch_size=256,
@@ -65,8 +33,8 @@ def main():
 
     # use paragraphs that are not simple fragments or very short sentences
     kilt_wikipedia_paragraphs = kilt_wikipedia_paragraphs.filter(
-        lambda x: (x["end_character"] - x["start_character"]) > 200)
-    kilt_wikipedia_paragraphs.load_faiss_index("embeddings", index_file_name, device=0)
+        lambda x: (x["end_character"] - x["start_character"]) > min_chars_per_passage)
+    kilt_wikipedia_paragraphs.load_faiss_index("embeddings", args.index_file_name, device=0)
 
     def embed_questions_for_retrieval(questions):
         query = question_tokenizer(questions, max_length=128, padding=True, truncation=True, return_tensors="pt")
@@ -78,9 +46,6 @@ def main():
     def query_index(question):
         question_embedding = embed_questions_for_retrieval([question])
         scores, wiki_passages = kilt_wikipedia_paragraphs.get_nearest_examples("embeddings", question_embedding, k=topk)
-
-        columns = ['wikipedia_id', 'start_paragraph_id', 'start_character', 'end_paragraph_id', 'end_character',
-                   'title', 'section', 'text']
 
         retrieved_examples = []
         r = list(zip(wiki_passages[k] for k in columns))
@@ -153,4 +118,23 @@ def main():
             fp.write("\n")
 
 
-main()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--kilt_input_file', default="./eli5-dev-kilt.jsonl", type=str)
+    parser.add_argument('--kilt_output_file', default="./eli5-predicted_retrieval.jsonl", type=str)
+    parser.add_argument(
+        "--question_encoder_name",
+        default="vblagoje/dpr-question_encoder-single-lfqa-base",
+        help="Question encoder to use",
+    )
+
+    parser.add_argument(
+        "--index_file_name",
+        default="../data/kilt_dpr_wikipedia_first.faiss",
+        help="Faiss index with passage embeddings",
+    )
+
+    args = parser.parse_args()
+
+    assert os.path.isfile(args.kilt_input_file), f"Input file {args.kilt_input_file} couldn't be loaded"
+    eval_generate(args)
