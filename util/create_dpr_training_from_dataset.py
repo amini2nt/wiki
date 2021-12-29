@@ -51,9 +51,9 @@ def find_negative_ctxs(dataset, dataset_embeddings, embedding_index: int,
 def generate_dpr_training_file(args):
     embedder = SentenceTransformer(args.embedding_model)
 
-    eli5_train_set = load_dataset("vblagoje/eli5v1", split="train")
-    eli5_validation_set = load_dataset("vblagoje/eli5v1", split="validation")
-    eli5_test_set = load_dataset("vblagoje/eli5v1", split="test")
+    eli5_train_set = load_dataset("vblagoje/lfqa", split="train")
+    eli5_validation_set = load_dataset("vblagoje/lfqa", split="validation")
+    eli5_test_set = load_dataset("vblagoje/lfqa", split="test")
 
     train_set = embedder.encode([example["title"] for example in eli5_train_set], convert_to_tensor=True,
                                 show_progress_bar=True)

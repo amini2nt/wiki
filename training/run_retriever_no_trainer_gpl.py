@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_parser():
-    parser = argparse.ArgumentParser(description="Train ELI5 retriever")
+    parser = argparse.ArgumentParser(description="Train LFQA retriever")
     parser.add_argument(
         "--dpr_input_file",
         type=str,

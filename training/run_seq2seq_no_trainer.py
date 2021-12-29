@@ -22,7 +22,7 @@ def get_parser():
     parser.add_argument(
         "--dataset_name",
         type=str,
-        default="vblagoje/eli5v1",
+        default="vblagoje/lfqa",
         help="The name of the dataset to use (via the datasets library).",
     )
 

@@ -91,9 +91,9 @@ def generate_dpr_training_file(args):
 
     kilt_wikipedia_paragraphs.load_faiss_index("embeddings", args.index_file_name, device=0)
 
-    eli5_train_set = load_dataset("vblagoje/eli5v1", split="train")
-    eli5_validation_set = load_dataset("vblagoje/eli5v1", split="validation")
-    eli5_test_set = load_dataset("vblagoje/eli5v1", split="test")
+    eli5_train_set = load_dataset("vblagoje/lfqa", split="train")
+    eli5_validation_set = load_dataset("vblagoje/lfqa", split="validation")
+    eli5_test_set = load_dataset("vblagoje/lfqa", split="test")
 
     for dataset_name, dataset in zip(["train", "validation", "test"], [eli5_train_set,
                                                                        eli5_validation_set,

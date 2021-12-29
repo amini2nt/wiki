@@ -17,7 +17,7 @@ def generate_support_docs(args):
     dims = 128
     min_chars_per_passage = 200
     device = ("cuda" if torch.cuda.is_available() else "cpu")
-    eli5 = load_dataset("vblagoje/eli5v1")
+    lfqa = load_dataset("vblagoje/lfqa")
 
     ctx_tokenizer = AutoTokenizer.from_pretrained(args.ctx_encoder_name)
     ctx_model = DPRContextEncoder.from_pretrained(args.ctx_encoder_name).to(device)
@@ -76,8 +76,8 @@ def generate_support_docs(args):
         paragraphs_embeddings.save_faiss_index("embeddings", args.index_file_name)
 
     kilt_wikipedia_paragraphs.load_faiss_index("embeddings", args.index_file_name, device=0)
-    create_support_doc(eli5["train"], "eli5_dpr_train_precomputed_dense_docs.json")
-    create_support_doc(eli5["validation"], "eli5_dpr_validation_precomputed_dense_docs.json")
+    create_support_doc(lfqa["train"], "lfqa_dpr_train_precomputed_dense_docs.json")
+    create_support_doc(lfqa["validation"], "lfqa_dpr_validation_precomputed_dense_docs.json")
 
 
 if __name__ == "__main__":
