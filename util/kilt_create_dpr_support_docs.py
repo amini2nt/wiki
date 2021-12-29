@@ -69,7 +69,7 @@ def generate_support_docs(args):
 
         paragraphs_embeddings = kilt_wikipedia_paragraphs.map(embed_passages_for_retrieval,
                                                               batched=True, batch_size=512,
-                                                              cache_file_name="../data/kilt_embedded.arrow",
+                                                              cache_file_name=args.encoded_kilt_file_name,
                                                               desc="Creating faiss index")
 
         paragraphs_embeddings.add_faiss_index(column="embeddings", custom_index=faiss.IndexFlatIP(dims))
@@ -83,7 +83,7 @@ def generate_support_docs(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Creates support docs for seq2seq model training")
     parser.add_argument(
-        "--context_encoder_name",
+        "--ctx_encoder_name",
         default="vblagoje/dpr-ctx_encoder-single-lfqa-base",
         help="Question encoder to use",
     )
@@ -97,6 +97,12 @@ if __name__ == "__main__":
         "--index_file_name",
         default="../data/kilt_dpr_wikipedia_first.faiss",
         help="Faiss index with passage embeddings",
+    )
+
+    parser.add_argument(
+        "--encoded_kilt_file_name",
+        default="../data/kilt_embedded.arrow",
+        help="Encoded KILT file name",
     )
 
     main_args, _ = parser.parse_known_args()
