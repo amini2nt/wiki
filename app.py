@@ -77,11 +77,32 @@ st.markdown("""
             border: none;
             color: #fff;
         }
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: white;
+            color: black;
+            max-width: 698px;
+            color: rgba(38, 39, 48, 0.4);
+            font-size: 14px;
+            height: 50px;
+        }
+        .footer a {
+            color: #000;
+        }
     </style> """, unsafe_allow_html=True)
 
 st.title('AI Assistant')
 
 question = st.text_input('Enter a question')
+
+footer="""
+    <div class="footer">
+        Streamlit app created by <a href="https://www.linkedin.com/in/danijel-petkovic-573309144/" target="_blank">Danijel Petkovic</a>
+    </div>
+"""
+st.markdown(footer,unsafe_allow_html=True)
 
 if question:
     with st.spinner("Generating an answer..."):
