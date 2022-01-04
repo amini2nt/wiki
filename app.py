@@ -128,8 +128,8 @@ if question:
             data = query_eli_model({
                 "inputs": model_input, 
                 "parameters": {
-                    "min_length": 30,
-                    "max_length": 150,
+                    "min_length": 64,
+                    "max_length": 256,
                     "do_sample": False, 
                     "early_stopping": True,
                     "num_beams": 8,
