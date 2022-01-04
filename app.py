@@ -36,6 +36,12 @@ def signJWT(question: str) -> Dict[str, str]:
     token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
     return token
 
+
+def truncate(sentence, word_count):
+    sa = sentence.split()
+    return " ".join(sa[:word_count])
+
+
 st.set_page_config(
     page_title="AI assistant",
     initial_sidebar_state="expanded"
@@ -118,7 +124,7 @@ if question:
         context_list = []
 
         for i in context_ready[:6]:
-            context_list.append(i["text"])
+            context_list.append(truncate(i["text"], 128))
 
         conditioned_context = "<P> " + " <P> ".join([d for d in context_list])
 
