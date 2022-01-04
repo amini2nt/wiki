@@ -140,40 +140,46 @@ if question:
                     "num_return_sequences": 1
                 }
             })
-        
-
-            if data:
-                generated_answer = data[0]['generated_text']
-
-                st.markdown(
-                    " ".join([
-                        "<div style='margin-bottom: 50px;'>",
-                        '<div style="padding: 30px;background-color: #B6C9B1; border-radius: 10px;">',
-                        f'<p>{generated_answer}</p>',
-                        "</div>",
-                        "</div>"
-                    ]),
-                    unsafe_allow_html=True
-                )
-
-    with st.spinner("Generating an audio..."):
-        audio_file = query_audio_tts({
-            "inputs": generated_answer,
-            "parameters": {
-                "vocoder_tag": "str_or_none(none)",
-                "threshold": 0.5,
-                "minlenratio": 0.0,
-                "maxlenratio": 10.0,
-                "use_att_constraint": False,
-                "backward_window": 1,
-                "forward_window": 3,
-                "speed_control_alpha": 1.0,
-                "noise_scale": 0.333,
-                "noise_scale_dur": 0.333
-            }
-        })
-
-        with open("out.flac", "wb") as f:
-            f.write(audio_file)
             
-            st.audio("out.flac")
+    if data and data[0]['generated_text']:
+        generated_answer = data[0]['generated_text']
+
+        st.markdown(
+            " ".join([
+                "<div style='margin-bottom: 50px;'>",
+                '<div style="padding: 30px;background-color: #B6C9B1; border-radius: 10px;">',
+                f'<p>{generated_answer}</p>',
+                "</div>",
+                "</div>"
+            ]),
+            unsafe_allow_html=True
+        )
+
+        with st.spinner("Generating an audio..."):
+            audio_file = query_audio_tts({
+                "inputs": generated_answer,
+                "parameters": {
+                    "vocoder_tag": "str_or_none(none)",
+                    "threshold": 0.5,
+                    "minlenratio": 0.0,
+                    "maxlenratio": 10.0,
+                    "use_att_constraint": False,
+                    "backward_window": 1,
+                    "forward_window": 3,
+                    "speed_control_alpha": 1.0,
+                    "noise_scale": 0.333,
+                    "noise_scale_dur": 0.333
+                }
+            })
+
+            with open("out.flac", "wb") as f:
+                f.write(audio_file)
+                
+                st.audio("out.flac")
+    else:
+        st.markdown("""
+            <div style="padding: 30px;background-color: #edd380; border-radius: 10px;">
+                <p>Model is loading, please try again in a few moments...<p>
+            </div>
+        """,unsafe_allow_html=True
+        )
