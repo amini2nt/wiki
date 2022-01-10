@@ -14,23 +14,26 @@ headers = {"Authorization": f"Bearer {INFERENCE_TOKEN}"}
 API_URL = "https://api-inference.huggingface.co/models/vblagoje/bart_lfqa"
 API_URL_TTS = "https://api-inference.huggingface.co/models/espnet/kan-bayashi_ljspeech_vits"
 
+
 def query_eli_model(payload):
     data = json.dumps(payload)
     response = requests.request("POST", API_URL, headers=headers, data=data)
     return json.loads(response.content.decode("utf-8"))
+
 
 def query_audio_tts(payload):
     data = json.dumps(payload)
     response = requests.request("POST", API_URL_TTS, headers=headers, data=data)
     return response.content
 
+
 def get_context(question, header):
-    response = requests.request("GET", CONTEXT_API_URL + question , headers=header)
+    response = requests.request("GET", CONTEXT_API_URL + question, headers=header)
     return response
+
 
 def signJWT(question: str) -> Dict[str, str]:
     payload = {
-        "question": question,
         "expires": time.time() + 6000
     }
     token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
@@ -103,40 +106,32 @@ st.title('AI Assistant')
 
 question = st.text_input('Enter a question')
 
-footer="""
+footer = """
     <div class="footer">
         Streamlit app created by <a href="https://www.linkedin.com/in/danijel-petkovic-573309144/" target="_blank">Danijel Petkovic</a>
     </div>
 """
-st.markdown(footer,unsafe_allow_html=True)
-
-if question:
+st.markdown(footer, unsafe_allow_html=True)
+if len(question) > 0:
     with st.spinner("Generating an answer..."):
 
         jwt_token = signJWT(question)
-        
         header = {"Authorization": f"Bearer {jwt_token}"}
-
         context = get_context(question, header)
-
         context_ready = (json.loads(context.content.decode("utf-8")))
-
         context_list = []
-
-        for i in context_ready[:6]:
+        for i in context_ready:
             context_list.append(truncate(i["text"], 128))
 
         conditioned_context = "<P> " + " <P> ".join([d for d in context_list])
-
         model_input = f'question: {question} context: {conditioned_context}'
-
         if model_input:
             data = query_eli_model({
-                "inputs": model_input, 
+                "inputs": model_input,
                 "parameters": {
                     "min_length": 64,
                     "max_length": 256,
-                    "do_sample": False, 
+                    "do_sample": False,
                     "early_stopping": True,
                     "num_beams": 8,
                     "temperature": 1.0,
@@ -146,8 +141,14 @@ if question:
                     "num_return_sequences": 1
                 }
             })
-            
-    if data and data[0]['generated_text']:
+    if 'error' in data:
+        st.markdown("""
+                    <div style="padding: 30px;background-color: #edd380; border-radius: 10px;">
+                        <p>Seq2Seq model for answer generation is loading, please try again in a few moments...<p>
+                    </div>
+                """, unsafe_allow_html=True
+                    )
+    elif data and len(data) > 0:
         generated_answer = data[0]['generated_text']
 
         st.markdown(
@@ -180,12 +181,11 @@ if question:
 
             with open("out.flac", "wb") as f:
                 f.write(audio_file)
-                
+
                 st.audio("out.flac")
     else:
-        st.markdown("""
-            <div style="padding: 30px;background-color: #edd380; border-radius: 10px;">
-                <p>Model is loading, please try again in a few moments...<p>
-            </div>
-        """,unsafe_allow_html=True
-        )
+        unknown_error = f"{data}"
+        st.markdown('<div style="padding: 30px;background-color: #edd380; border-radius: 10px;">' +
+                    unknown_error +
+                    '</div>', unsafe_allow_html=True
+                    )
