@@ -96,6 +96,8 @@ st.markdown("""
             color: rgba(38, 39, 48, 0.4);
             font-size: 14px;
             height: 50px;
+            padding: 10px 0;
+            z-index: 50;
         }
         .footer a {
             color: #000;
@@ -183,6 +185,13 @@ if len(question) > 0:
                 f.write(audio_file)
 
                 st.audio("out.flac")
+                
+        st.title("Context paragraphs:")
+        for i in context_ready:
+            st.markdown('<div style="padding: 30px;background-color: #f7f0d9; border-radius: 10px;margin-bottom: 10px;">' +
+                truncate(i["text"], 128) +
+                '</div>', unsafe_allow_html=True
+            )
     else:
         unknown_error = f"{data}"
         st.markdown('<div style="padding: 30px;background-color: #edd380; border-radius: 10px;">' +
