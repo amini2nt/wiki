@@ -97,11 +97,17 @@ st.markdown("""
             padding: 10px 0;
             z-index: 50;
         }
-        .footer-custom a {
-            color: #bb86fc;
-        }
         footer {
             display: none !important;
+        }
+        .footer-custom a {
+            color: #000;
+        }
+        .dark .footer-custom {
+            color: #fff;
+        }
+        .dark .footer-custom a {
+            color: #bb86fc;
         }
     </style> """, unsafe_allow_html=True)
 
