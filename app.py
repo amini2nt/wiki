@@ -60,7 +60,6 @@ st.markdown("""
             border-radius: 24px;
             height: 50px;
             width: auto;
-            padding: 10px;
             margin: 10px auto 30px;
         }
         .row-widget.stTextInput > div:first-of-type:hover,
@@ -156,7 +155,7 @@ if len(question) > 0:
         st.markdown(
             " ".join([
                 "<div style='margin-bottom: 50px;'>",
-                '<div style="padding: 30px;background-color: #B6C9B1; border-radius: 10px;">',
+                '<div style="padding: 30px;background-color: #bb86fc; border-radius: 10px;color: #fff">',
                 f'<p>{generated_answer}</p>',
                 "</div>",
                 "</div>"
@@ -188,7 +187,7 @@ if len(question) > 0:
                 
         st.title("Context paragraphs:")
         for i in context_ready:
-            st.markdown('<div style="padding: 30px;background-color: #f7f0d9; border-radius: 10px;margin-bottom: 10px;">' +
+            st.markdown('<div style="color: #fff;padding: 30px;background-color: #1f1b24; border-radius: 10px;margin-bottom: 10px;">' +
                 truncate(i["text"], 128) +
                 '</div>', unsafe_allow_html=True
             )
