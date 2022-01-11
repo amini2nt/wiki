@@ -96,9 +96,8 @@ st.markdown("""
             position: fixed;
             bottom: 0;
             width: 100%;
-            color: #26273066;
+            color: #83838366;
             max-width: 698px;
-            color: rgba(38, 39, 48, 0.4);
             font-size: 14px;
             height: 50px;
             padding: 10px 0;
@@ -108,13 +107,7 @@ st.markdown("""
             display: none !important;
         }
         .footer-custom a {
-            color: #000;
-        }
-        .dark .footer-custom {
-            color: #fff;
-        }
-        .dark .footer-custom a {
-            color: #bb86fc;
+            color: #70707066;
         }
     </style> """, unsafe_allow_html=True)
 
