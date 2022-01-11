@@ -1,5 +1,5 @@
 streamlit
-datasets==1.11.0
+sentence_transformers
 requests
 pyjwt
 typing

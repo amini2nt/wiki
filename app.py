@@ -1,9 +1,11 @@
 import json
-import streamlit as st
-import requests
 import time
 from typing import Dict
+
 import jwt
+import requests
+import streamlit as st
+from sentence_transformers import SentenceTransformer, util
 
 JWT_SECRET = st.secrets["api_secret"]
 JWT_ALGORITHM = st.secrets["api_algorithm"]
@@ -32,7 +34,12 @@ def get_context(question, header):
     return response
 
 
-def signJWT(question: str) -> Dict[str, str]:
+@st.cache(allow_output_mutation=True)
+def get_sentence_transformer():
+    return SentenceTransformer('all-MiniLM-L6-v2')
+
+
+def signJWT() -> Dict[str, str]:
     payload = {
         "expires": time.time() + 6000
     }
@@ -124,10 +131,10 @@ st.markdown(footer, unsafe_allow_html=True)
 if len(question) > 0:
     with st.spinner("Generating an answer..."):
 
-        jwt_token = signJWT(question)
+        jwt_token = signJWT()
         header = {"Authorization": f"Bearer {jwt_token}"}
         context = get_context(question, header)
-        context_ready = (json.loads(context.content.decode("utf-8")))
+        context_ready = json.loads(context.content.decode("utf-8"))
         context_list = []
         for i in context_ready:
             context_list.append(truncate(i["text"], 128))
@@ -192,13 +199,16 @@ if len(question) > 0:
                 f.write(audio_file)
 
                 st.audio("out.flac")
-                
-        st.title("Context paragraphs:")
-        for i in context_ready:
-            st.markdown('<div style="color: #fff;padding: 30px;background-color: #1f1b24; border-radius: 10px;margin-bottom: 10px;">' +
-                truncate(i["text"], 128) +
-                '</div>', unsafe_allow_html=True
-            )
+        model = get_sentence_transformer()
+        question_e = model.encode(question, convert_to_tensor=True)
+        context_e = model.encode(context_list, convert_to_tensor=True)
+        scores = util.cos_sim(question_e.repeat(context_e.shape[0], 1), context_e)
+        similarity_scores = scores[0].squeeze().tolist()
+        for idx, node in enumerate(context_ready):
+            node["answer_similarity"] = "{0:.2f}".format(similarity_scores[idx])
+
+        st.subheader("Context paragraphs:")
+        st.json(context_ready)
     else:
         unknown_error = f"{data}"
         st.markdown('<div style="padding: 30px;background-color: #edd380; border-radius: 10px;">' +
