@@ -85,12 +85,11 @@ st.markdown("""
             border: none;
             color: #fff;
         }
-        .footer {
+        .footer-custom {
             position: fixed;
             bottom: 0;
             width: 100%;
-            background-color: white;
-            color: black;
+            color: #fafafa66;
             max-width: 698px;
             color: rgba(38, 39, 48, 0.4);
             font-size: 14px;
@@ -98,8 +97,11 @@ st.markdown("""
             padding: 10px 0;
             z-index: 50;
         }
-        .footer a {
-            color: #000;
+        .footer-custom a {
+            color: #bb86fc;
+        }
+        footer {
+            display: none !important;
         }
     </style> """, unsafe_allow_html=True)
 
@@ -108,7 +110,7 @@ st.title('AI Assistant')
 question = st.text_input('Enter a question')
 
 footer = """
-    <div class="footer">
+    <div class="footer-custom">
         Streamlit app created by <a href="https://www.linkedin.com/in/danijel-petkovic-573309144/" target="_blank">Danijel Petkovic</a>
     </div>
 """
