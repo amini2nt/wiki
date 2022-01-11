@@ -89,7 +89,7 @@ st.markdown("""
             position: fixed;
             bottom: 0;
             width: 100%;
-            color: #fafafa66;
+            color: #26273066;
             max-width: 698px;
             color: rgba(38, 39, 48, 0.4);
             font-size: 14px;
