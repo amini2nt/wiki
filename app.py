@@ -54,7 +54,7 @@ def truncate(sentence, word_count):
 
 st.set_page_config(
     page_title="AI assistant",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
 st.markdown(""" 
@@ -111,16 +111,17 @@ st.markdown("""
         }
     </style> """, unsafe_allow_html=True)
 
-st.title('AI Assistant')
-
-question = st.text_input('Enter a question')
-
 footer = """
     <div class="footer-custom">
         Streamlit app created by <a href="https://www.linkedin.com/in/danijel-petkovic-573309144/" target="_blank">Danijel Petkovic</a>
     </div>
 """
 st.markdown(footer, unsafe_allow_html=True)
+
+st.title('AI Assistant')
+
+question = st.text_input(label='', placeholder='Enter a question')
+
 if len(question) > 0:
     with st.spinner("Generating an answer..."):
 
@@ -151,47 +152,14 @@ if len(question) > 0:
                 }
             })
     if 'error' in data:
-        st.markdown("""
-                    <div style="padding: 30px;background-color: #edd380; border-radius: 10px;">
-                        <p>Seq2Seq model for answer generation is loading, please try again in a few moments...<p>
-                    </div>
-                """, unsafe_allow_html=True
-                    )
+        st.warning("Seq2Seq model for answer generation is loading, please try again in a few moments...")
+        
     elif data and len(data) > 0:
         generated_answer = data[0]['generated_text']
 
-        st.markdown(
-            " ".join([
-                "<div style='margin-bottom: 50px;'>",
-                '<div style="padding: 30px;background-color: #bb86fc; border-radius: 10px;color: #fff">',
-                f'<p>{generated_answer}</p>',
-                "</div>",
-                "</div>"
-            ]),
-            unsafe_allow_html=True
-        )
+        st.write(generated_answer)
+        st.write("")
 
-        with st.spinner("Generating an audio..."):
-            audio_file = query_audio_tts({
-                "inputs": generated_answer,
-                "parameters": {
-                    "vocoder_tag": "str_or_none(none)",
-                    "threshold": 0.5,
-                    "minlenratio": 0.0,
-                    "maxlenratio": 10.0,
-                    "use_att_constraint": False,
-                    "backward_window": 1,
-                    "forward_window": 3,
-                    "speed_control_alpha": 1.0,
-                    "noise_scale": 0.333,
-                    "noise_scale_dur": 0.333
-                }
-            })
-
-            with open("out.flac", "wb") as f:
-                f.write(audio_file)
-
-                st.audio("out.flac")
         model = get_sentence_transformer()
         question_e = model.encode(question, convert_to_tensor=True)
         context_e = model.encode(context_list, convert_to_tensor=True)
@@ -200,11 +168,34 @@ if len(question) > 0:
         for idx, node in enumerate(context_ready):
             node["answer_similarity"] = "{0:.2f}".format(similarity_scores[idx])
 
-        st.subheader("Context paragraphs:")
-        st.json(context_ready)
+        st.sidebar.subheader("Context paragraphs:")
+        st.sidebar.json(context_ready)
+
+        audio_file = query_audio_tts({
+            "inputs": generated_answer,
+            "parameters": {
+                "vocoder_tag": "str_or_none(none)",
+                "threshold": 0.5,
+                "minlenratio": 0.0,
+                "maxlenratio": 10.0,
+                "use_att_constraint": False,
+                "backward_window": 1,
+                "forward_window": 3,
+                "speed_control_alpha": 1.0,
+                "noise_scale": 0.333,
+                "noise_scale_dur": 0.333
+            }
+        })
+
+        if audio_file:
+            with st.spinner("Generating an audio..."):
+                with open("out.flac", "wb") as f:
+                    f.write(audio_file)
+
+                    st.audio("out.flac")
+        else:
+            st.write('TTS model is loading')
+
     else:
         unknown_error = f"{data}"
-        st.markdown('<div style="padding: 30px;background-color: #edd380; border-radius: 10px;">' +
-                    unknown_error +
-                    '</div>', unsafe_allow_html=True
-                    )
+        st.warning(unknown_error)
