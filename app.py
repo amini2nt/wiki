@@ -120,7 +120,7 @@ st.markdown(footer, unsafe_allow_html=True)
 
 st.title('AI Assistant')
 
-question = st.text_input(label='', placeholder='Enter a question')
+question = st.text_input(label='')
 
 if len(question) > 0:
     with st.spinner("Generating an answer..."):
@@ -160,17 +160,6 @@ if len(question) > 0:
         st.write(generated_answer)
         st.write("")
 
-        model = get_sentence_transformer()
-        question_e = model.encode(question, convert_to_tensor=True)
-        context_e = model.encode(context_list, convert_to_tensor=True)
-        scores = util.cos_sim(question_e.repeat(context_e.shape[0], 1), context_e)
-        similarity_scores = scores[0].squeeze().tolist()
-        for idx, node in enumerate(context_ready):
-            node["answer_similarity"] = "{0:.2f}".format(similarity_scores[idx])
-
-        st.sidebar.subheader("Context paragraphs:")
-        st.sidebar.json(context_ready)
-
         audio_file = query_audio_tts({
             "inputs": generated_answer,
             "parameters": {
@@ -195,6 +184,17 @@ if len(question) > 0:
                     st.audio("out.flac")
         else:
             st.write('TTS model is loading')
+
+        model = get_sentence_transformer()
+        question_e = model.encode(question, convert_to_tensor=True)
+        context_e = model.encode(context_list, convert_to_tensor=True)
+        scores = util.cos_sim(question_e.repeat(context_e.shape[0], 1), context_e)
+        similarity_scores = scores[0].squeeze().tolist()
+        for idx, node in enumerate(context_ready):
+            node["answer_similarity"] = "{0:.2f}".format(similarity_scores[idx])
+
+        st.subheader("Context paragraphs:")
+        st.json(context_ready)
 
     else:
         unknown_error = f"{data}"
