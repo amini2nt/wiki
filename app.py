@@ -118,7 +118,7 @@ footer = """
 """
 st.markdown(footer, unsafe_allow_html=True)
 
-st.title('AI Assistant')
+st.title('LFQA Assistant')
 
 question = st.text_input(label='')
 
