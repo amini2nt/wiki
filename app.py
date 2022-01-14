@@ -14,7 +14,7 @@ CONTEXT_API_URL = st.secrets["api_context"]
 
 headers = {"Authorization": f"Bearer {INFERENCE_TOKEN}"}
 API_URL = "https://api-inference.huggingface.co/models/vblagoje/bart_lfqa"
-API_URL_TTS = "https://api-inference.huggingface.co/models/espnet/kan-bayashi_ljspeech_vits"
+API_URL_TTS = "https://api-inference.huggingface.co/models/espnet/kan-bayashi_ljspeech_joint_finetune_conformer_fastspeech2_hifigan"
 
 
 def query_eli_model(payload):
@@ -149,6 +149,9 @@ if len(question) > 0:
                     "top_p": None,
                     "no_repeat_ngram_size": 3,
                     "num_return_sequences": 1
+                },
+                "options": {
+                    "wait_for_model": True
                 }
             })
     if 'error' in data:
@@ -173,6 +176,9 @@ if len(question) > 0:
                 "speed_control_alpha": 1.0,
                 "noise_scale": 0.333,
                 "noise_scale_dur": 0.333
+            },
+            "options": {
+                "wait_for_model": True
             }
         })
 
