@@ -1,7 +1,7 @@
 import torch
 from fastapi import FastAPI, Depends, status
 from fastapi.responses import PlainTextResponse
-from transformers import AutoTokenizer, AutoModel
+from transformers import AutoTokenizer, AutoModel, DPRQuestionEncoder
 
 from datasets import load_from_disk
 import time
@@ -23,15 +23,15 @@ columns = ['kilt_id', 'wikipedia_id', 'wikipedia_title', 'text', 'anchors', 'cat
 min_snippet_length = 20
 topk = 21
 device = ("cuda" if torch.cuda.is_available() else "cpu")
-tokenizer = AutoTokenizer.from_pretrained('vblagoje/retribert-base-uncased')
-model = AutoModel.from_pretrained('vblagoje/retribert-base-uncased').to(device)
+model = DPRQuestionEncoder.from_pretrained("vblagoje/dpr-question_encoder-single-lfqa-wiki").to(device)
+tokenizer = AutoTokenizer.from_pretrained("vblagoje/dpr-question_encoder-single-lfqa-wiki")
 _ = model.eval()
 
 index_file_name = "./data/kilt_wikipedia.faiss"
 
 kilt_wikipedia_paragraphs = load_from_disk("./data/kilt_wiki_prepared")
 # use paragraphs that are not simple fragments or very short sentences
-kilt_wikipedia_paragraphs = kilt_wikipedia_paragraphs.filter(lambda x: x["end_character"] > 250)
+kilt_wikipedia_paragraphs = kilt_wikipedia_paragraphs.filter(lambda x: x["end_character"] > 200)
 
 
 class JWTBearer(HTTPBearer):
@@ -88,10 +88,8 @@ def decodeJWT(token: str) -> dict:
 def embed_questions_for_retrieval(questions):
     query = tokenizer(questions, max_length=128, padding=True, truncation=True, return_tensors="pt")
     with torch.no_grad():
-        q_reps = model.embed_questions(query["input_ids"].to(device),
-                                       query["attention_mask"].to(device)).cpu().type(torch.float)
-    return q_reps.numpy()
-
+        q_reps = model(query["input_ids"].to(device), query["attention_mask"].to(device)).pooler_output
+    return q_reps.cpu().numpy()
 
 def query_index(question):
     question_embedding = embed_questions_for_retrieval([question])
@@ -121,3 +119,4 @@ def healthz():
 @app.get("/find_context", dependencies=[Depends(JWTBearer())])
 def find_context(question: str = None):
     return [res for res in query_index(question) if len(res["text"].split()) > min_snippet_length][:int(topk / 3)]
+
