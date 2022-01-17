@@ -13,7 +13,7 @@ def app():
                 position: fixed;
                 bottom: 0;
                 width: 100%;
-                color: #83838366;
+                color: var(--text-color);
                 max-width: 698px;
                 font-size: 14px;
                 height: 50px;
@@ -24,7 +24,7 @@ def app():
                 display: none !important;
             }
             .footer-custom a {
-                color: #70707066;
+                color: var(--text-color);
             }
             h1 {
                 margin-bottom: 50px

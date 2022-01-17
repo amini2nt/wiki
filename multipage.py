@@ -36,10 +36,13 @@ class MultiPage:
         st.markdown("""
             <style>
                 section[data-testid="stSidebar"] > div:first-of-type {
-                    background-color: #fff;
+                    background-color: var(--secondary-background-color);
                     width: 250px;
                     padding: 4rem 0;
                     box-shadow: -2rem 0px 2rem 2rem rgba(0,0,0,0.16);
+                }
+                section[aria-expanded="true"] > div:nth-of-type(2) {
+                    display: none;
                 }
                 .main > div:first-of-type {
                     padding: 1rem 0;
