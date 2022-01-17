@@ -28,7 +28,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 # Add all your application here
-app.add_page("LFQA", ask.app)
+app.add_page("Home", ask.app)
 app.add_page("Settings", settings.app)
 
 # The main app

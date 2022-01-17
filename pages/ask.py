@@ -100,6 +100,9 @@ def app():
                 padding: 10px 0;
                 z-index: 50;
             }
+            .main {
+                padding: 20px;
+            }
             footer {
                 display: none !important;
             }
@@ -117,7 +120,7 @@ def app():
 
     st.title('LFQA Assistant')
 
-    question = st.text_input(label='')
+    question = st.text_input(label='Ask a question')
     if len(question) > 0:
         with st.spinner("Generating an answer..."):
 

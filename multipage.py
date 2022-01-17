@@ -5,7 +5,7 @@ through an object oriented framework.
 
 # Import necessary libraries
 import streamlit as st
-
+from streamlit_option_menu import option_menu
 
 # Define the multipage class to manage the multiple apps in our program
 class MultiPage:
@@ -33,11 +33,27 @@ class MultiPage:
 
     def run(self):
         # Drodown to select the page to run
-        page = st.sidebar.selectbox(
-            'App Navigation',
-            self.pages,
-            format_func=lambda page: page['title']
-        )
+        st.markdown("""
+            <style>
+                section[data-testid="stSidebar"] > div:first-of-type {
+                    background-color: #fff;
+                    width: 250px;
+                    padding: 4rem 0;
+                    box-shadow: -2rem 0px 2rem 2rem rgba(0,0,0,0.16);
+                }
+                .main > div:first-of-type {
+                    padding: 1rem 0;
+                }
+            </style>
+        """, unsafe_allow_html=True)
+
+        with st.sidebar:
+            selected = option_menu(None, [self.pages[0]['title'], self.pages[1]['title']], 
+                icons=['house', 'gear'], 
+                menu_icon="cast", default_index=0)
 
         # run the app function
-        page['function']()
+        if selected == 'Home':
+            self.pages[0]['function']()
+        elif selected == 'Settings':
+            self.pages[1]['function']()
