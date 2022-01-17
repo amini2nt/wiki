@@ -1,5 +1,5 @@
 ---
-title: LFGA
+title: LFQA Assistant
 emoji: 🌖
 colorFrom: green
 colorTo: yellow
