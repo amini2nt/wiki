@@ -24,7 +24,7 @@ for k, v in session_values.items():
 
 app = MultiPage()
 st.set_page_config(
-    page_title="AI assistant",
+    page_title="Wikipedia Assistant",
     initial_sidebar_state="expanded",
 )
 # Add all your application here

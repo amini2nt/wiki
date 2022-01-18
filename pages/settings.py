@@ -30,10 +30,15 @@ def app():
                 margin-bottom: 50px
             }
             button[kind="formSubmit"]{
-                margin-top: 50px;
+                margin-top: 40px;
                 border-radius: 20px;
                 padding: 5px 20px;
                 font-size: 18px;
+                margin-bottom: 80px;
+                background-color: var(--primary-color);
+            }
+            #lfqa-model-parameters {
+                font-size: 36px;
             }
         </style>
     """, unsafe_allow_html=True)
@@ -67,7 +72,7 @@ def app():
                                             help="The value used to module the next token probabilities")
 
         # Every form must have a submit button.
-        submitted = st.form_submit_button("Submit")
+        submitted = st.form_submit_button("Save")
         if submitted:
             for k, v in settings.items():
                 st.session_state[k] = v

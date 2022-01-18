@@ -73,6 +73,9 @@ def app():
             .row-widget.stTextInput .st-bq {
                 background-color: #fff;
             }
+            .row-widget.stTextInput > label {
+                color: #b3b3b3;
+            }
             .row-widget.stButton > button {
                 border-radius: 24px;
                 background-color: #B6C9B1;
@@ -109,6 +112,18 @@ def app():
             .footer-custom a {
                 color: var(--text-color);
             }
+            #wikipedia-assistant {
+                font-size: 36px;
+            }
+            .generated-answer {
+                margin-bottom: 40px;
+                border-left: 4px solid #ffc423;
+                padding-left: 20px;
+            }
+            .generated-answer p {
+                font-size: 16px;
+                font-weight: bold;
+            }
         </style> """, unsafe_allow_html=True)
 
     footer = """
@@ -118,9 +133,9 @@ def app():
     """
     st.markdown(footer, unsafe_allow_html=True)
 
-    st.title('LFQA Assistant')
+    st.title('Wikipedia Assistant')
 
-    question = st.text_input(label='Ask a question')
+    question = st.text_input(label='Ask Wikipedia an open-ended question, for example "Why do airplanes leave contrails in the sky?"')
     if len(question) > 0:
         with st.spinner("Generating an answer..."):
 
@@ -159,8 +174,14 @@ def app():
         elif data and len(data) > 0:
             generated_answer = data[0]['generated_text']
 
-            st.write(generated_answer)
-            st.write("")
+            st.markdown(
+                " ".join([
+                    "<div class='generated-answer'>",
+                        f'<p>{generated_answer}</p>',
+                    "</div>"
+                ]),
+                unsafe_allow_html=True
+            )
 
             audio_file = query_audio_tts({
                 "inputs": generated_answer,
@@ -189,6 +210,8 @@ def app():
                         st.audio("out.flac")
             else:
                 st.write('TTS model is loading')
+
+            st.markdown("""<hr></hr>""", unsafe_allow_html=True)
 
             model = get_sentence_transformer()
             question_e = model.encode(question, convert_to_tensor=True)
