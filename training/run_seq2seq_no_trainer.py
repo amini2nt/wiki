@@ -236,11 +236,9 @@ def eval_qa_s2s_epoch(model, dataloader, accelerator, args):
 def train(config):
     set_seed(42)
     args = config["args"]
-    data_files = {"train": "train.json", "validation": "validation.json", "test": "test.json"}
-    eli5 = load_dataset(args.dataset_name, data_files=data_files)
+    eli5 = load_dataset(args.dataset_name)
 
-    support_docs = load_dataset("vblagoje/eli5_support_docs",
-                                data_files={"train": "train.json", "validation": "validation.json"})
+    support_docs = load_dataset("vblagoje/lfqa_support_docs")
 
     # Initialize the accelerator. We will let the accelerator handle device placement for us in this example.
     accelerator = Accelerator()
@@ -284,7 +282,7 @@ def train(config):
         column_names = eli5["train"].column_names
         for split in ["train", "validation"]:
             d_cache = dict([(e["id"], e["context"]) for e in tqdm(support_docs_prepared[split],
-                                                                  desc=f"Adding support docs to ELI5 {split}")])
+                                                                  desc=f"Adding support docs to LFQA {split}")])
             processed_datasets[split] = eli5[split].map(preprocess_eli5,
                                                         batched=True,
                                                         remove_columns=column_names,
