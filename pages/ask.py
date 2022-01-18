@@ -124,6 +124,9 @@ def app():
                 font-size: 16px;
                 font-weight: bold;
             }
+            .react-json-view {
+                margin-bottom: 80px;
+            }
         </style> """, unsafe_allow_html=True)
 
     footer = """
