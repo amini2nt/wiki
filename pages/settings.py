@@ -68,7 +68,7 @@ def app():
         settings["num_beams"] = st.slider("Num beams", 1, 16, st.session_state["num_beams"],
                                           help="Number of beams for beam search. 1 means no beam search.")
         st.markdown("""<hr></hr>""", unsafe_allow_html=True)
-        settings["temperature"] = st.slider("Num beams", 0.0, 1.0, st.session_state["temperature"], step=0.1,
+        settings["temperature"] = st.slider("Temperature", 0.0, 1.0, st.session_state["temperature"], step=0.1,
                                             help="The value used to module the next token probabilities")
 
         # Every form must have a submit button.
