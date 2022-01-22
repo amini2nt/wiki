@@ -17,7 +17,7 @@ API_URL = "https://api-inference.huggingface.co/models/vblagoje/bart_lfqa"
 API_URL_TTS = "https://api-inference.huggingface.co/models/espnet/kan-bayashi_ljspeech_joint_finetune_conformer_fastspeech2_hifigan"
 
 
-def query_eli_model(payload):
+def invoke_lfqa_model(payload):
     data = json.dumps(payload)
     response = requests.request("POST", API_URL, headers=headers, data=data)
     return json.loads(response.content.decode("utf-8"))
@@ -29,9 +29,9 @@ def query_audio_tts(payload):
     return response.content
 
 
-def get_context(question, header):
+def request_context_passages(question, header):
     response = requests.request("GET", CONTEXT_API_URL + question, headers=header)
-    return response
+    return json.loads(response.content.decode("utf-8"))
 
 
 @st.cache(allow_output_mutation=True)
@@ -138,39 +138,36 @@ def app():
 
     st.title('Wikipedia Assistant')
 
-    question = st.text_input(label='Ask Wikipedia an open-ended question, for example "Why do airplanes leave contrails in the sky?"')
+    question = st.text_input(label='Ask Wikipedia an open-ended question below; for example, "Why do airplanes leave contrails in the sky?"')
     if len(question) > 0:
         with st.spinner("Generating an answer..."):
 
             jwt_token = signJWT()
             header = {"Authorization": f"Bearer {jwt_token}"}
-            context = get_context(question, header)
-            context_ready = json.loads(context.content.decode("utf-8"))
-            context_list = []
-            for i in context_ready:
-                context_list.append(truncate(i["text"], 128))
+            context_passages = request_context_passages(question, header)
 
-            conditioned_context = "<P> " + " <P> ".join([d for d in context_list])
+            conditioned_context = "<P> " + " <P> ".join([d["text"] for d in context_passages])
             model_input = f'question: {question} context: {conditioned_context}'
-            if model_input:
-                data = query_eli_model({
-                    "inputs": model_input,
-                    "parameters": {
-                        "min_length": st.session_state["min_length"],
-                        "max_length": st.session_state["max_length"],
-                        "do_sample": st.session_state["do_sample"],
-                        "early_stopping": st.session_state["early_stopping"],
-                        "num_beams": st.session_state["num_beams"],
-                        "temperature": st.session_state["temperature"],
-                        "top_k": None,
-                        "top_p": None,
-                        "no_repeat_ngram_size": 3,
-                        "num_return_sequences": 1
-                    },
-                    "options": {
-                        "wait_for_model": True
-                    }
-                })
+
+            data = invoke_lfqa_model({
+                "inputs": model_input,
+                "parameters": {
+                    "truncation": "longest_first",
+                    "min_length": st.session_state["min_length"],
+                    "max_length": st.session_state["max_length"],
+                    "do_sample": st.session_state["do_sample"],
+                    "early_stopping": st.session_state["early_stopping"],
+                    "num_beams": st.session_state["num_beams"],
+                    "temperature": st.session_state["temperature"],
+                    "top_k": None,
+                    "top_p": None,
+                    "no_repeat_ngram_size": 3,
+                    "num_return_sequences": 1
+                },
+                "options": {
+                    "wait_for_model": True
+                }
+            })
         if 'error' in data:
             st.warning("Seq2Seq model for answer generation is loading, please try again in a few moments...")
 
@@ -218,14 +215,14 @@ def app():
 
             model = get_sentence_transformer()
             question_e = model.encode(question, convert_to_tensor=True)
-            context_e = model.encode(context_list, convert_to_tensor=True)
+            context_e = model.encode([d["text"] for d in context_passages], convert_to_tensor=True)
             scores = util.cos_sim(question_e.repeat(context_e.shape[0], 1), context_e)
             similarity_scores = scores[0].squeeze().tolist()
-            for idx, node in enumerate(context_ready):
+            for idx, node in enumerate(context_passages):
                 node["answer_similarity"] = "{0:.2f}".format(similarity_scores[idx])
 
             st.subheader("Context paragraphs:")
-            st.json(context_ready)
+            st.json(context_passages)
 
         else:
             unknown_error = f"{data}"

@@ -1,5 +1,5 @@
 ---
-title: LFQA Assistant
+title: Wikipedia Assistant
 emoji: 🌖
 colorFrom: green
 colorTo: yellow
