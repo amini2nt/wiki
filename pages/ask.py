@@ -131,7 +131,10 @@ def app():
                 font-weight: bold;
             }
             .react-json-view {
-                margin-bottom: 80px;
+                margin: 40px 0 80px;
+            }
+            .row-widget.stSelectbox label {
+                display: none;
             }
         </style> """, unsafe_allow_html=True)
 
@@ -222,8 +225,12 @@ def app():
 
             model = get_sentence_transformer()
 
-            st.subheader("Context")
-            selection = st.selectbox(label='Scope', options=('Paragraphs', 'Sentences'))
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.subheader("Context")
+            with col2:
+                selection = st.selectbox(label='', options=('Paragraphs', 'Sentences'))
 
             question_e = model.encode(question, convert_to_tensor=True)
             if selection == "Paragraphs":
