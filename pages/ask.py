@@ -1,5 +1,10 @@
 import json
 import time
+import nltk
+from nltk import tokenize
+
+nltk.download('punkt')
+
 from typing import Dict
 
 import jwt
@@ -47,13 +52,14 @@ def signJWT() -> Dict[str, str]:
     return token
 
 
-def truncate(sentence, word_count):
-    sa = sentence.split()
-    return " ".join(sa[:word_count])
+def extract_sentences_from_passages(passages):
+    sentences = []
+    for idx, node in enumerate(passages):
+        sentences.extend(tokenize.sent_tokenize(node["text"]))
+    return sentences
 
 
 def app():
-
     st.markdown(""" 
         <style> 
             .row-widget.stTextInput > div:first-of-type {
@@ -138,7 +144,8 @@ def app():
 
     st.title('Wikipedia Assistant')
 
-    question = st.text_input(label='Ask Wikipedia an open-ended question below; for example, "Why do airplanes leave contrails in the sky?"')
+    question = st.text_input(
+        label='Ask Wikipedia an open-ended question below; for example, "Why do airplanes leave contrails in the sky?"')
     if len(question) > 0:
         with st.spinner("Generating an answer..."):
 
@@ -177,7 +184,7 @@ def app():
             st.markdown(
                 " ".join([
                     "<div class='generated-answer'>",
-                        f'<p>{generated_answer}</p>',
+                    f'<p>{generated_answer}</p>',
                     "</div>"
                 ]),
                 unsafe_allow_html=True
@@ -214,15 +221,30 @@ def app():
             st.markdown("""<hr></hr>""", unsafe_allow_html=True)
 
             model = get_sentence_transformer()
-            question_e = model.encode(question, convert_to_tensor=True)
-            context_e = model.encode([d["text"] for d in context_passages], convert_to_tensor=True)
-            scores = util.cos_sim(question_e.repeat(context_e.shape[0], 1), context_e)
-            similarity_scores = scores[0].squeeze().tolist()
-            for idx, node in enumerate(context_passages):
-                node["answer_similarity"] = "{0:.2f}".format(similarity_scores[idx])
 
-            st.subheader("Context paragraphs:")
-            st.json(context_passages)
+            st.subheader("Context")
+            selection = st.selectbox(label='Scope', options=('Paragraphs', 'Sentences'))
+
+            question_e = model.encode(question, convert_to_tensor=True)
+            if selection == "Paragraphs":
+                context_e = model.encode([d["text"] for d in context_passages], convert_to_tensor=True)
+                scores = util.cos_sim(question_e.repeat(context_e.shape[0], 1), context_e)
+                similarity_scores = scores[0].squeeze().tolist()
+                for idx, node in enumerate(context_passages):
+                    node["answer_similarity"] = "{0:.2f}".format(similarity_scores[idx])
+                context_passages = sorted(context_passages, key=lambda x: x["answer_similarity"], reverse=True)
+                st.json(context_passages)
+            else:
+                sentences = extract_sentences_from_passages(context_passages)
+                sentences_e = model.encode([sentence for sentence in sentences], convert_to_tensor=True)
+                scores = util.cos_sim(question_e.repeat(sentences_e.shape[0], 1), sentences_e)
+                sentence_similarity_scores = scores[0].squeeze().tolist()
+                result = []
+                for idx, sentence in enumerate(sentences):
+                    result.append(
+                        {"text": sentence, "answer_similarity": "{0:.2f}".format(sentence_similarity_scores[idx])})
+                context_sentences = json.dumps(sorted(result, key=lambda x: x["answer_similarity"], reverse=True))
+                st.json(context_sentences)
 
         else:
             unknown_error = f"{data}"

@@ -1,3 +1,4 @@
+nltk
 streamlit
 sentence_transformers
 requests
