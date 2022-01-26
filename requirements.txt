@@ -5,3 +5,4 @@ requests
 pyjwt
 typing
 streamlit_option_menu
+st-annotated-text

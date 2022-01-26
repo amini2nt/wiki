@@ -3,6 +3,7 @@ import json
 import time
 import nltk
 from nltk import tokenize
+from annotated_text import annotated_text, annotation
 
 nltk.download('punkt')
 
@@ -70,6 +71,14 @@ def similarity_color_picker(similarity: float):
     value = int(similarity * 100)
     rgb = colorsys.hsv_to_rgb(value / 300., 1.0, 1.0)
     return [round(255 * x) for x in rgb]
+
+
+def rgb_to_hex(rgb):
+    return '%02x%02x%02x' % tuple(rgb)
+
+
+def similiarity_to_hex(similarity: float):
+    return rgb_to_hex(similarity_color_picker(similarity))
 
 
 def answer_to_context_similarity(generated_answer, context_passages, topk=3):
@@ -212,15 +221,17 @@ def app():
         elif data and len(data) > 0:
             generated_answer = data[0]['generated_text']
             sentence_similarity = answer_to_context_similarity(generated_answer, context_passages, topk=3)
-
-            st.markdown(
-                " ".join([
-                    "<div class='generated-answer'>",
-                    f'<p>{generated_answer}</p>',
-                    "</div>"
-                ]),
-                unsafe_allow_html=True
-            )
+            for item in sentence_similarity:
+                score = item["context"][0]["score"]
+                annotated_text((item["answer"], "{0:.2f}".format(score), "#"+similiarity_to_hex(score)))
+            # st.markdown(
+            #     " ".join([
+            #         "<div class='generated-answer'>",
+            #         f'<p>{generated_answer}</p>',
+            #         "</div>"
+            #     ]),
+            #     unsafe_allow_html=True
+            # )
 
             audio_file = query_audio_tts({
                 "inputs": generated_answer,
