@@ -8,7 +8,8 @@ def init_session_key_value(key, value):
         st.session_state[key] = value
 
 
-session_values = {"min_length": 64,
+session_values = {"tts": "HuggingFace",
+                  "min_length": 64,
                   "max_length": 256,
                   "do_sample": False,
                   "early_stopping": True,

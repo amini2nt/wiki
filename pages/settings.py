@@ -71,9 +71,13 @@ def app():
         settings["temperature"] = st.slider("Temperature", 0.0, 1.0, st.session_state["temperature"], step=0.1,
                                             help="The value used to module the next token probabilities")
 
+        st.markdown("""<hr></hr>""", unsafe_allow_html=True)
+        settings["tts"] = st.selectbox(label="TTS engine", options=("Google", "HuggingFace"),
+                                       index=["Google", "HuggingFace"].index(st.session_state["tts"]),
+                                       help="Answer text-to-speech engine")
+
         # Every form must have a submit button.
         submitted = st.form_submit_button("Save")
         if submitted:
             for k, v in settings.items():
                 st.session_state[k] = v
-

@@ -1,10 +1,13 @@
 import colorsys
 import json
 import time
+
 import nltk
 from nltk import tokenize
 
 nltk.download('punkt')
+from google.oauth2 import service_account
+from google.cloud import texttospeech
 
 from typing import Dict
 
@@ -29,10 +32,54 @@ def invoke_lfqa_model(payload):
     return json.loads(response.content.decode("utf-8"))
 
 
-def query_audio_tts(payload):
+def hf_tts(text: str):
+    payload = {
+        "inputs": text,
+        "parameters": {
+            "vocoder_tag": "str_or_none(none)",
+            "threshold": 0.5,
+            "minlenratio": 0.0,
+            "maxlenratio": 10.0,
+            "use_att_constraint": False,
+            "backward_window": 1,
+            "forward_window": 3,
+            "speed_control_alpha": 1.0,
+            "noise_scale": 0.333,
+            "noise_scale_dur": 0.333
+        },
+        "options": {
+            "wait_for_model": True
+        }
+    }
     data = json.dumps(payload)
     response = requests.request("POST", API_URL_TTS, headers=headers, data=data)
     return response.content
+
+
+def google_tts(text: str, private_key_id: str, private_key: str, client_email: str):
+    config = {
+        "private_key_id": private_key_id,
+        "private_key": f"-----BEGIN PRIVATE KEY-----\n{private_key}\n-----END PRIVATE KEY-----\n",
+        "client_email": client_email,
+        "token_uri": "https://oauth2.googleapis.com/token",
+    }
+    credentials = service_account.Credentials.from_service_account_info(config)
+    client = texttospeech.TextToSpeechClient(credentials=credentials)
+
+    synthesis_input = texttospeech.SynthesisInput(text=text)
+
+    # Build the voice request, select the language code ("en-US") and the ssml
+    # voice gender ("neutral")
+    voice = texttospeech.VoiceSelectionParams(language_code="en-US",
+                                              ssml_gender=texttospeech.SsmlVoiceGender.NEUTRAL)
+
+    # Select the type of audio file you want returned
+    audio_config = texttospeech.AudioConfig(audio_encoding=texttospeech.AudioEncoding.MP3)
+
+    # Perform the text-to-speech request on the text input with the selected
+    # voice parameters and audio file type
+    response = client.synthesize_speech(input=synthesis_input, voice=voice, audio_config=audio_config)
+    return response
 
 
 def request_context_passages(question, header):
@@ -222,33 +269,21 @@ def app():
                 unsafe_allow_html=True
             )
 
-            audio_file = query_audio_tts({
-                "inputs": generated_answer,
-                "parameters": {
-                    "vocoder_tag": "str_or_none(none)",
-                    "threshold": 0.5,
-                    "minlenratio": 0.0,
-                    "maxlenratio": 10.0,
-                    "use_att_constraint": False,
-                    "backward_window": 1,
-                    "forward_window": 3,
-                    "speed_control_alpha": 1.0,
-                    "noise_scale": 0.333,
-                    "noise_scale_dur": 0.333
-                },
-                "options": {
-                    "wait_for_model": True
-                }
-            })
+            if st.session_state["tts"] == "HuggingFace":
+                audio_file = hf_tts(generated_answer)
+            else:
+                audio_file = google_tts(generated_answer, st.secrets["private_key_id"],
+                                        st.secrets["private_key"], st.secrets["client_email"])
 
-            if audio_file:
-                with st.spinner("Generating an audio..."):
+            with st.spinner("Generating an audio..."):
+                if st.session_state["tts"] == "HuggingFace":
                     with open("out.flac", "wb") as f:
                         f.write(audio_file)
-
                         st.audio("out.flac")
-            else:
-                st.write('TTS model is loading')
+                else:
+                    with open("out.mp3", "wb") as f:
+                        f.write(audio_file.audio_content)
+                        st.audio("out.mp3")
 
             st.markdown("""<hr></hr>""", unsafe_allow_html=True)
 
