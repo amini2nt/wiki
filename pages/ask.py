@@ -160,6 +160,14 @@ def similarity_color_picker(similarity: float):
     return [round(255 * x) for x in rgb]
 
 
+def rgb_to_hex(rgb):
+    return '%02x%02x%02x' % tuple(rgb)
+
+
+def similiarity_to_hex(similarity: float):
+    return rgb_to_hex(similarity_color_picker(similarity))
+
+
 def answer_to_context_similarity(generated_answer, context_passages, topk=3):
     context_sentences = extract_sentences_from_passages(context_passages)
     context_sentences_e = get_sentence_transformer_encoding(context_sentences)
@@ -252,6 +260,52 @@ def app():
             .row-widget.stSelectbox label {
                 display: none;
             }
+            .score-circle {
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                padding: 2px;
+                font-size: 8px;
+            }
+            .tooltip {
+                text-align: center;
+                line-height: 20px;
+                display: inline-block;
+                font-size: 8px;
+                border-radius: 50%;
+                height: 20px;
+                width: 20px;
+                position: absolute;
+                cursor: pointer;
+            }
+
+            .tooltip .tooltiptext {
+                visibility: hidden;
+                width: 120px;
+                color: #fff;
+                text-align: center;
+                border-radius: 6px;
+                padding: 5px;
+
+                /* Position the tooltip */
+                position: absolute;
+                z-index: 1;
+            }
+
+            .tooltip:hover .tooltiptext {
+                visibility: visible;
+            }
+            .tooltip .tooltiptext {
+                width: 200px;
+                bottom: 100%;
+                left: 50%;
+                margin-left: -100px;
+                color: #000;
+                font-size: 12px;
+            }
+            .stAudio {
+                margin-top: 50px;
+            }
         </style> """, unsafe_allow_html=True)
 
     footer = """
@@ -286,15 +340,23 @@ def app():
             generated_answer = data[0]['generated_text']
             sentence_similarity = answer_to_context_similarity(generated_answer, context_passages, topk=3)
 
-            st.markdown(
-                " ".join([
-                    "<div class='generated-answer'>",
-                    f'<p>{generated_answer}</p>',
-                    "</div>"
-                ]),
-                unsafe_allow_html=True
-            )
+            for item in sentence_similarity:
+                score = item["context"][0]["score"]
+                formatted_score = "{0:.2f}".format(score)
 
+                st.markdown(
+                    " ".join([
+                        '<div>'
+                            f'{item["answer"]}',
+                            f'<span style="background-color: #{similiarity_to_hex(score)}" class="tooltip">',
+                                f'{formatted_score}',
+                                f'<span style="background-color: #{similiarity_to_hex(score)}" class="tooltiptext">{item["context"][0]["source"]}</span>'
+                            '</span>',
+                        '</div>'
+                    ]),
+                    unsafe_allow_html=True
+                )
+            
             if st.session_state["tts"] == "HuggingFace":
                 audio_file = hf_tts(generated_answer)
             else:
