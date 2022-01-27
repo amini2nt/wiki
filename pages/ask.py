@@ -20,15 +20,56 @@ JWT_SECRET = st.secrets["api_secret"]
 JWT_ALGORITHM = st.secrets["api_algorithm"]
 INFERENCE_TOKEN = st.secrets["api_inference"]
 CONTEXT_API_URL = st.secrets["api_context"]
+LFQA_API_URL = st.secrets["api_lfqa"]
 
 headers = {"Authorization": f"Bearer {INFERENCE_TOKEN}"}
 API_URL = "https://api-inference.huggingface.co/models/vblagoje/bart_lfqa"
 API_URL_TTS = "https://api-inference.huggingface.co/models/espnet/kan-bayashi_ljspeech_joint_finetune_conformer_fastspeech2_hifigan"
 
 
-def invoke_lfqa_model(payload):
+def api_inference_lfqa(model_input: str):
+    payload = {
+        "inputs": model_input,
+        "parameters": {
+            "truncation": "longest_first",
+            "min_length": st.session_state["min_length"],
+            "max_length": st.session_state["max_length"],
+            "do_sample": st.session_state["do_sample"],
+            "early_stopping": st.session_state["early_stopping"],
+            "num_beams": st.session_state["num_beams"],
+            "temperature": st.session_state["temperature"],
+            "top_k": None,
+            "top_p": None,
+            "no_repeat_ngram_size": 3,
+            "num_return_sequences": 1
+        },
+        "options": {
+            "wait_for_model": True
+        }
+    }
     data = json.dumps(payload)
     response = requests.request("POST", API_URL, headers=headers, data=data)
+    return json.loads(response.content.decode("utf-8"))
+
+
+def inference_lfqa(model_input: str, header: dict):
+    payload = {
+        "model_input": model_input,
+        "parameters": {
+            "min_length": st.session_state["min_length"],
+            "max_length": st.session_state["max_length"],
+            "do_sample": st.session_state["do_sample"],
+            "early_stopping": st.session_state["early_stopping"],
+            "num_beams": st.session_state["num_beams"],
+            "temperature": st.session_state["temperature"],
+            "top_k": None,
+            "top_p": None,
+            "no_repeat_ngram_size": 3,
+            "num_return_sequences": 1
+        }
+    }
+    data = json.dumps(payload)
+    response = requests.request("POST", LFQA_API_URL, headers=header, data=data)
     return json.loads(response.content.decode("utf-8"))
 
 
@@ -234,25 +275,10 @@ def app():
             conditioned_context = "<P> " + " <P> ".join([d["text"] for d in context_passages])
             model_input = f'question: {question} context: {conditioned_context}'
 
-            data = invoke_lfqa_model({
-                "inputs": model_input,
-                "parameters": {
-                    "truncation": "longest_first",
-                    "min_length": st.session_state["min_length"],
-                    "max_length": st.session_state["max_length"],
-                    "do_sample": st.session_state["do_sample"],
-                    "early_stopping": st.session_state["early_stopping"],
-                    "num_beams": st.session_state["num_beams"],
-                    "temperature": st.session_state["temperature"],
-                    "top_k": None,
-                    "top_p": None,
-                    "no_repeat_ngram_size": 3,
-                    "num_return_sequences": 1
-                },
-                "options": {
-                    "wait_for_model": True
-                }
-            })
+            if st.session_state["api_lfqa_selector"] == "HuggingFace":
+                data = api_inference_lfqa(model_input)
+            else:
+                data = inference_lfqa(model_input, header)
         if 'error' in data:
             st.warning("Seq2Seq model for answer generation is loading, please try again in a few moments...")
 

@@ -8,7 +8,9 @@ def init_session_key_value(key, value):
         st.session_state[key] = value
 
 
-session_values = {"tts": "HuggingFace",
+lfqa_api = "HuggingFace" if "api_lfqa_selector" not in st.secrets else st.secrets["api_lfqa_selector"]
+session_values = {"api_lfqa_selector": lfqa_api,
+                  "tts": "Google",
                   "min_length": 64,
                   "max_length": 256,
                   "do_sample": False,
