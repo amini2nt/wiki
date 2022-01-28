@@ -154,18 +154,17 @@ def extract_sentences_from_passages(passages):
     return sentences
 
 
-def similarity_color_picker(similarity: float):
-    value = int(similarity * 100)
+def similarity_color_picker(sentence_similarity: float):    
+    value = int(sentence_similarity * 100)
     rgb = colorsys.hsv_to_rgb(value / 300., 1.0, 1.0)
     return [round(255 * x) for x in rgb]
-
 
 def rgb_to_hex(rgb):
     return '%02x%02x%02x' % tuple(rgb)
 
 
-def similiarity_to_hex(similarity: float):
-    return rgb_to_hex(similarity_color_picker(similarity))
+def similiarity_to_hex(sentence_similarity: float):
+    return rgb_to_hex(similarity_color_picker(sentence_similarity))
 
 
 def answer_to_context_similarity(generated_answer, context_passages, topk=3):
@@ -339,23 +338,20 @@ def app():
         elif data and len(data) > 0:
             generated_answer = data[0]['generated_text']
             sentence_similarity = answer_to_context_similarity(generated_answer, context_passages, topk=3)
-
+            sentences = "<div>"
             for item in sentence_similarity:
+                sentences += '<span>'
                 score = item["context"][0]["score"]
                 formatted_score = "{0:.2f}".format(score)
-
-                st.markdown(
-                    " ".join([
-                        '<div>'
-                            f'{item["answer"]}',
-                            f'<span style="background-color: #{similiarity_to_hex(score)}" class="tooltip">',
-                                f'{formatted_score}',
-                                f'<span class="tooltiptext">{item["context"][0]["source"]}</span>'
-                            '</span>',
-                        '</div>'
-                    ]),
-                    unsafe_allow_html=True
-                )
+                sentences += "".join([                    
+                        f'{item["answer"]}',
+                        f'<span style="background-color: #{similiarity_to_hex(score)}" class="tooltip">',
+                            f'{formatted_score}',
+                            f'<span style="background-color: #{similiarity_to_hex(score)}" class="tooltiptext">{item["context"][0]["source"]}</span>'                                            
+                ])
+                sentences += '</span>'                
+            sentences += '</div>'                
+            st.markdown(sentences, unsafe_allow_html=True)
             
             if st.session_state["tts"] == "HuggingFace":
                 audio_file = hf_tts(generated_answer)
