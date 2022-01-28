@@ -350,7 +350,7 @@ def app():
                             f'{item["answer"]}',
                             f'<span style="background-color: #{similiarity_to_hex(score)}" class="tooltip">',
                                 f'{formatted_score}',
-                                f'<span style="background-color: #{similiarity_to_hex(score)}" class="tooltiptext">{item["context"][0]["source"]}</span>'
+                                f'<span class="tooltiptext">{item["context"][0]["source"]}</span>'
                             '</span>',
                         '</div>'
                     ]),
