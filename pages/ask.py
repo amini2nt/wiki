@@ -73,6 +73,7 @@ def inference_lfqa(model_input: str, header: dict):
     return json.loads(response.content.decode("utf-8"))
 
 
+@st.cache(allow_output_mutation=True, show_spinner=False)
 def hf_tts(text: str):
     payload = {
         "inputs": text,
@@ -97,6 +98,7 @@ def hf_tts(text: str):
     return response.content
 
 
+@st.cache(allow_output_mutation=True, show_spinner=False)
 def google_tts(text: str, private_key_id: str, private_key: str, client_email: str):
     config = {
         "private_key_id": private_key_id,
@@ -139,7 +141,7 @@ def get_sentence_transformer_encoding(sentences):
     return model.encode([sentence for sentence in sentences], convert_to_tensor=True)
 
 
-def signJWT() -> Dict[str, str]:
+def sign_jwt() -> Dict[str, str]:
     payload = {
         "expires": time.time() + 6000
     }
@@ -175,85 +177,36 @@ def answer_to_context_similarity(generated_answer, context_passages, topk=3):
     return result
 
 
-def app():
-    st.markdown(""" 
-        <style> 
-            .row-widget.stTextInput > div:first-of-type {
-                background: #fff;
-                display: flex;
-                border: 1px solid #dfe1e5;
-                box-shadow: none;
-                border-radius: 24px;
-                height: 50px;
-                width: auto;
-                margin: 10px auto 30px;
-            }
-            .row-widget.stTextInput > div:first-of-type:hover,
-            .row-widget.stTextInput > div:first-of-type:focus {
-                box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.2);
-            }
-            .row-widget.stTextInput .st-bq {
-                background-color: #fff;
-            }
-            .row-widget.stTextInput > label {
-                color: #b3b3b3;
-            }
-            .row-widget.stButton > button {
-                border-radius: 24px;
-                background-color: #B6C9B1;
-                color: #fff;
-                border: none;
-                padding: 6px 20px;
-                float: right;
-                background-image: none;
-            }
-            .row-widget.stButton > button:hover {
-                box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.2);
-            }
-            .row-widget.stButton > button:focus {
-                border: none;
-                color: #fff;
-            }
-            .footer-custom {
-                position: fixed;
-                bottom: 0;
-                width: 100%;
-                color: var(--text-color);
-                max-width: 698px;
-                font-size: 14px;
-                height: 50px;
-                padding: 10px 0;
-                z-index: 50;
-            }
-            .main {
-                padding: 20px;
-            }
-            footer {
-                display: none !important;
-            }
-            .footer-custom a {
-                color: var(--text-color);
-            }
-            #wikipedia-assistant {
-                font-size: 36px;
-            }
-            .generated-answer {
-                margin-bottom: 40px;
-                border-left: 4px solid #ffc423;
-                padding-left: 20px;
-            }
-            .generated-answer p {
-                font-size: 16px;
-                font-weight: bold;
-            }
-            .react-json-view {
-                margin: 40px 0 80px;
-            }
-            .row-widget.stSelectbox label {
-                display: none;
-            }
-        </style> """, unsafe_allow_html=True)
+@st.cache(allow_output_mutation=True, show_spinner=False)
+def get_answer(question: str):
+    if not question:
+        return {}
 
+    resp: Dict[str, str] = {}
+    if question and len(question.split()) > 3:
+        header = {"Authorization": f"Bearer {sign_jwt()}"}
+        context_passages = request_context_passages(question, header)
+
+        conditioned_context = "<P> " + " <P> ".join([d["text"] for d in context_passages])
+        model_input = f'question: {question} context: {conditioned_context}'
+
+        if st.session_state["api_lfqa_selector"] == "HuggingFace":
+            inference_response = api_inference_lfqa(model_input)
+        else:
+            inference_response = inference_lfqa(model_input, header)
+        if "error" in inference_response:
+            resp = inference_response
+        else:
+            resp["context_passages"] = context_passages
+            resp["answer"] = inference_response[0]["generated_text"]
+    else:
+        resp = {"error": f"Invalid question {question}"}
+    return resp
+
+
+def app():
+    with open('style.css') as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
     footer = """
         <div class="footer-custom">
             Streamlit app created by <a href="https://www.linkedin.com/in/danijel-petkovic-573309144/" target="_blank">Danijel Petkovic</a>
@@ -265,25 +218,16 @@ def app():
 
     question = st.text_input(
         label='Ask Wikipedia an open-ended question below; for example, "Why do airplanes leave contrails in the sky?"')
-    if len(question) > 0:
-        with st.spinner("Generating an answer..."):
+    with st.spinner("Generating an answer..."):
+        question_response = get_answer(question)
 
-            jwt_token = signJWT()
-            header = {"Authorization": f"Bearer {jwt_token}"}
-            context_passages = request_context_passages(question, header)
+    if question_response:
+        if "error" in question_response:
+            st.warning(question_response["error"])
+        else:
 
-            conditioned_context = "<P> " + " <P> ".join([d["text"] for d in context_passages])
-            model_input = f'question: {question} context: {conditioned_context}'
-
-            if st.session_state["api_lfqa_selector"] == "HuggingFace":
-                data = api_inference_lfqa(model_input)
-            else:
-                data = inference_lfqa(model_input, header)
-        if 'error' in data:
-            st.warning("Seq2Seq model for answer generation is loading, please try again in a few moments...")
-
-        elif data and len(data) > 0:
-            generated_answer = data[0]['generated_text']
+            generated_answer = question_response["answer"]
+            context_passages = question_response["context_passages"]
             sentence_similarity = answer_to_context_similarity(generated_answer, context_passages, topk=3)
 
             st.markdown(
@@ -294,22 +238,19 @@ def app():
                 ]),
                 unsafe_allow_html=True
             )
-
-            if st.session_state["tts"] == "HuggingFace":
-                audio_file = hf_tts(generated_answer)
-            else:
-                audio_file = google_tts(generated_answer, st.secrets["private_key_id"],
-                                        st.secrets["private_key"], st.secrets["client_email"])
-
-            with st.spinner("Generating an audio..."):
+            with st.spinner("Generating audio..."):
                 if st.session_state["tts"] == "HuggingFace":
+                    audio_file = hf_tts(generated_answer)
                     with open("out.flac", "wb") as f:
                         f.write(audio_file)
-                        st.audio("out.flac")
                 else:
+                    audio_file = google_tts(generated_answer, st.secrets["private_key_id"],
+                                            st.secrets["private_key"], st.secrets["client_email"])
                     with open("out.mp3", "wb") as f:
                         f.write(audio_file.audio_content)
-                        st.audio("out.mp3")
+
+                audio_file = "out.flac" if st.session_state["tts"] == "HuggingFace" else "out.mp3"
+                st.audio(audio_file)
 
             st.markdown("""<hr></hr>""", unsafe_allow_html=True)
 
@@ -345,7 +286,3 @@ def app():
                 st.json(context_sentences)
             else:
                 st.json(sentence_similarity)
-
-        else:
-            unknown_error = f"{data}"
-            st.warning(unknown_error)
