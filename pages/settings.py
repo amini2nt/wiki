@@ -34,11 +34,13 @@ def app():
                 border-radius: 20px;
                 padding: 5px 20px;
                 font-size: 18px;
-                margin-bottom: 80px;
                 background-color: var(--primary-color);
             }
             #lfqa-model-parameters {
                 font-size: 36px;
+            }
+            .stAlert {
+                width: 250px;
             }
         </style>
     """, unsafe_allow_html=True)
@@ -81,3 +83,4 @@ def app():
         if submitted:
             for k, v in settings.items():
                 st.session_state[k] = v
+            st.info('App settings saved successfully.')

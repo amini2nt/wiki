@@ -187,6 +187,14 @@ def similarity_color_picker(similarity: float):
     return [round(255 * x) for x in rgb]
 
 
+def rgb_to_hex(rgb):
+    return '%02x%02x%02x' % tuple(rgb)
+
+
+def similiarity_to_hex(similarity: float):
+    return rgb_to_hex(similarity_color_picker(similarity))
+
+
 def answer_to_context_similarity(generated_answer, context_passages, topk=3):
     context_sentences = extract_sentences_from_passages(context_passages)
     context_sentences_e = get_sentence_transformer_encoding(context_sentences)
@@ -253,15 +261,21 @@ def app():
             generated_answer = question_response["answer"]
             context_passages = question_response["context_passages"]
             sentence_similarity = answer_to_context_similarity(generated_answer, context_passages, topk=3)
+            sentences = "<div class='sentence-wrapper'>"
+            for item in sentence_similarity:
+                sentences += '<span>'
+                score = item["context"][0]["score"]
+                formatted_score = "{0:.2f}".format(score)
+                sentences += "".join([                    
+                        f'  {item["answer"]}',
+                        f'<span style="background-color: #{similiarity_to_hex(score)}" class="tooltip">',
+                            f'{formatted_score}',
+                            f'<span class="tooltiptext">{item["context"][0]["source"]}</span>'                                            
+                ])
+                sentences += '</span>'                
+            sentences += '</span>'                
+            st.markdown(sentences, unsafe_allow_html=True)
 
-            st.markdown(
-                " ".join([
-                    "<div class='generated-answer'>",
-                    f'<p>{generated_answer}</p>',
-                    "</div>"
-                ]),
-                unsafe_allow_html=True
-            )
             with st.spinner("Generating audio..."):
                 if st.session_state["tts"] == "HuggingFace":
                     audio_file = hf_tts(generated_answer)
