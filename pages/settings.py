@@ -42,6 +42,7 @@ def app():
             }
             .stAlert {
                 width: 250px;
+                margin-top: 32px;
             }
         </style>
     """, unsafe_allow_html=True)
@@ -82,8 +83,11 @@ def app():
                                        help="Answer text-to-speech engine")
 
         # Every form must have a submit button.
-        submitted = st.form_submit_button("Save")
-        if submitted:
-            for k, v in settings.items():
-                st.session_state[k] = v
-            st.info('App settings saved successfully.')
+        col3, col4, col5, col6 = st.columns(4)
+        with col3:
+            submitted = st.form_submit_button("Save")
+        with col4:
+            if submitted:
+                for k, v in settings.items():
+                    st.session_state[k] = v
+                st.success('App settings saved successfully.')
