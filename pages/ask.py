@@ -9,7 +9,7 @@ nltk.download('punkt')
 from google.oauth2 import service_account
 from google.cloud import texttospeech
 
-from typing import Dict
+from typing import Dict, Optional
 
 import jwt
 import requests
@@ -69,8 +69,24 @@ def inference_lfqa(model_input: str, header: dict):
         }
     }
     data = json.dumps(payload)
-    response = requests.request("POST", LFQA_API_URL, headers=header, data=data)
+    try:
+        response = requests.request("POST", LFQA_API_URL, headers=header, data=data)
+        if response.status_code == 200:
+            json_response = response.content.decode("utf-8")
+            result = json.loads(json_response)
+        else:
+            result = {"error": f"LFQA service unavailable, status code={response.status_code}"}
+    except requests.exceptions.RequestException as e:
+        result = {"error": e}
     return json.loads(response.content.decode("utf-8"))
+
+
+def invoke_lfqa(service_backend: str, model_input: str, header: Optional[dict]):
+    if "HuggingFace" == service_backend:
+        inference_response = api_inference_lfqa(model_input)
+    else:
+        inference_response = inference_lfqa(model_input, header)
+    return inference_response
 
 
 @st.cache(allow_output_mutation=True, show_spinner=False)
@@ -126,8 +142,17 @@ def google_tts(text: str, private_key_id: str, private_key: str, client_email: s
 
 
 def request_context_passages(question, header):
-    response = requests.request("GET", CONTEXT_API_URL + question, headers=header)
-    return json.loads(response.content.decode("utf-8"))
+    try:
+        response = requests.request("GET", CONTEXT_API_URL + question, headers=header)
+        if response.status_code == 200:
+            json_response = response.content.decode("utf-8")
+            result = json.loads(json_response)
+        else:
+            result = {"error": f"Context passage service unavailable, status code={response.status_code}"}
+    except requests.exceptions.RequestException as e:
+        result = {"error": e}
+
+    return result
 
 
 @st.cache(allow_output_mutation=True, show_spinner=False)
@@ -186,19 +211,18 @@ def get_answer(question: str):
     if question and len(question.split()) > 3:
         header = {"Authorization": f"Bearer {sign_jwt()}"}
         context_passages = request_context_passages(question, header)
-
-        conditioned_context = "<P> " + " <P> ".join([d["text"] for d in context_passages])
-        model_input = f'question: {question} context: {conditioned_context}'
-
-        if st.session_state["api_lfqa_selector"] == "HuggingFace":
-            inference_response = api_inference_lfqa(model_input)
+        if "error" in context_passages:
+            resp = context_passages
         else:
-            inference_response = inference_lfqa(model_input, header)
-        if "error" in inference_response:
-            resp = inference_response
-        else:
-            resp["context_passages"] = context_passages
-            resp["answer"] = inference_response[0]["generated_text"]
+            conditioned_context = "<P> " + " <P> ".join([d["text"] for d in context_passages])
+            model_input = f'question: {question} context: {conditioned_context}'
+
+            inference_response = invoke_lfqa(st.session_state["api_lfqa_selector"], model_input, header)
+            if "error" in inference_response:
+                resp = inference_response
+            else:
+                resp["context_passages"] = context_passages
+                resp["answer"] = inference_response[0]["generated_text"]
     else:
         resp = {"error": f"Invalid question {question}"}
     return resp
