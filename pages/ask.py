@@ -241,7 +241,8 @@ def app():
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
     footer = """
         <div class="footer-custom">
-            Streamlit app created by <a href="https://www.linkedin.com/in/danijel-petkovic-573309144/" target="_blank">Danijel Petkovic</a>
+            Streamlit app - <a href="https://www.linkedin.com/in/danijel-petkovic-573309144/" target="_blank">Danijel Petkovic</a>  |   
+            LFQA/DPR models - <a href="https://www.linkedin.com/in/blagojevicvladimir/" target="_blank">Vladimir Blagojevic</a>
         </div>
     """
     st.markdown(footer, unsafe_allow_html=True)
@@ -265,7 +266,7 @@ def app():
             for item in sentence_similarity:
                 sentences += '<span>'
                 score = item["context"][0]["score"]
-                formatted_score = "{0:.2f}".format(score)
+                formatted_score = "{0:.1f}".format(score)
                 sentences += "".join([                    
                         f'  {item["answer"]}',
                         f'<span style="background-color: #{similiarity_to_hex(score)}" class="tooltip">',
