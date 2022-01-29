@@ -93,6 +93,7 @@ footer {
     width: 20px;
     position: relative;
     cursor: pointer;
+    color:#000;
 }
 
 .tooltip .tooltiptext {
@@ -110,6 +111,7 @@ footer {
     background-color: #fff;
     border: 1px solid #ccc;
     box-shadow: 0px 0px 3px 1px rgba(0, 0, 0, 0.16);
+    color: #000;
 }
 
 .tooltip:hover .tooltiptext {
