@@ -1,5 +1,6 @@
 import colorsys
 import json
+import re
 import time
 
 import nltk
@@ -210,6 +211,18 @@ def answer_to_context_similarity(generated_answer, context_passages, topk=3):
     return result
 
 
+def post_process_answer(generated_answer):
+    result = generated_answer
+    # detect sentence boundaries regex pattern
+    regex = r"([A-Z][a-z].*?[.:!?](?=$| [A-Z]))"
+    answer_sentences = tokenize.sent_tokenize(generated_answer)
+    # do we have truncated last sentence?
+    if len(answer_sentences) > len(re.findall(regex, generated_answer)):
+        drop_last_sentence = " ".join(s for s in answer_sentences[:-1])
+        result = drop_last_sentence
+    return result.strip()
+
+
 @st.cache(allow_output_mutation=True, show_spinner=False)
 def get_answer(question: str):
     if not question:
@@ -230,7 +243,7 @@ def get_answer(question: str):
                 resp = inference_response
             else:
                 resp["context_passages"] = context_passages
-                resp["answer"] = inference_response[0]["generated_text"]
+                resp["answer"] = post_process_answer(inference_response[0]["generated_text"])
     else:
         resp = {"error": f"Invalid question {question}"}
     return resp
