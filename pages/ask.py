@@ -249,7 +249,7 @@ def get_answer(question: str):
                 resp["context_passages"] = context_passages
                 resp["answer"] = post_process_answer(inference_response[0]["generated_text"])
     else:
-        resp = {"error": f"Invalid question {question}"}
+        resp = {"error": f"A longer, more descriptive question will receive a better answer. '{question}' is too short."}
     return resp
 
 
