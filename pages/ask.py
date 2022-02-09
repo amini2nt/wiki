@@ -317,7 +317,10 @@ def app():
             with col1:
                 st.subheader("Context")
             with col2:
-                selection = st.selectbox(label='Scope', options=('Paragraphs', 'Sentences', 'Answer Similarity'))
+                selection = st.selectbox(
+                    label="", 
+                    options=('Paragraphs', 'Sentences', 'Answer Similarity'), 
+                    help="Context is a set of articles fetched from wikipedia from which the model is creating the answer.")
 
             question_e = model.encode(question, convert_to_tensor=True)
             if selection == "Paragraphs":
