@@ -123,3 +123,7 @@ footer {
     padding-left: 20px;
     margin-bottom: 40px;
 }
+
+#context {
+    padding: 0;
+}

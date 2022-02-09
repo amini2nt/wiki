@@ -312,10 +312,11 @@ def app():
 
             model = get_sentence_transformer()
 
-            col1, col2 = st.columns(2)
+            col1, col2 = st.columns([3, 1])
             
             with col1:
                 st.subheader("Context")
+                st.caption('Context is the set of articles from which the model is creating the answer.')
             with col2:
                 selection = st.selectbox(label='Scope', options=('Paragraphs', 'Sentences', 'Answer Similarity'))
 
