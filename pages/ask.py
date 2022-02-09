@@ -79,7 +79,7 @@ def inference_lfqa(model_input: str, header: dict):
             result = {"error": f"LFQA service unavailable, status code={response.status_code}"}
     except requests.exceptions.RequestException as e:
         result = {"error": e}
-    return json.loads(response.content.decode("utf-8"))
+    return result
 
 
 def invoke_lfqa(service_backend: str, model_input: str, header: Optional[dict]):
@@ -183,7 +183,7 @@ def extract_sentences_from_passages(passages):
 
 
 def similarity_color_picker(similarity: float):
-    value = int(similarity * 100)
+    value = int(similarity * 75)
     rgb = colorsys.hsv_to_rgb(value / 300., 1.0, 1.0)
     return [round(255 * x) for x in rgb]
 
@@ -221,6 +221,10 @@ def post_process_answer(generated_answer):
         drop_last_sentence = " ".join(s for s in answer_sentences[:-1])
         result = drop_last_sentence
     return result.strip()
+
+
+def format_score(value: float, precision=2):
+    return f"{value:.{precision}f}"
 
 
 @st.cache(allow_output_mutation=True, show_spinner=False)
@@ -279,12 +283,12 @@ def app():
             for item in sentence_similarity:
                 sentences += '<span>'
                 score = item["context"][0]["score"]
-                formatted_score = "{0:.1f}".format(score)
+                support_sentence = item["context"][0]["source"]
                 sentences += "".join([                    
                         f'  {item["answer"]}',
                         f'<span style="background-color: #{similiarity_to_hex(score)}" class="tooltip">',
-                            f'{formatted_score}',
-                            f'<span class="tooltiptext">{item["context"][0]["source"]}</span>'                                            
+                            f'{format_score(score, precision=1)}',
+                f'<span class="tooltiptext">Wikipedia source:<br> {support_sentence} <br>Similarity: {format_score(score)}</span>'
                 ])
                 sentences += '</span>'                
             sentences += '</span>'                
