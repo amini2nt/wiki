@@ -288,7 +288,7 @@ def app():
                         f'  {item["answer"]}',
                         f'<span style="background-color: #{similiarity_to_hex(score)}" class="tooltip">',
                             f'{format_score(score, precision=1)}',
-                f'<span class="tooltiptext">Wikipedia source:<br> {support_sentence} <br>Similarity: {format_score(score)}</span>'
+                f'<span class="tooltiptext"><b>Wikipedia source</b><br><br> {support_sentence} <br><br><b>Similarity: {format_score(score)}</b></span>'
                 ])
                 sentences += '</span>'                
             sentences += '</span>'                

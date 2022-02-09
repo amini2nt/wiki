@@ -114,6 +114,10 @@ footer {
     color: #000;
 }
 
+.tooltiptext b:first-of-type {
+    text-decoration: underline;
+}
+
 .tooltip:hover .tooltiptext {
     visibility: visible;
 }
