@@ -320,8 +320,7 @@ def app():
                 selection = st.selectbox(
                     label="", 
                     options=('Paragraphs', 'Sentences', 'Answer Similarity'), 
-                    help="Context is a set of articles fetched from wikipedia from which the model is creating the answer.")
-
+                    help="Context represents Wikipedia passages used to generate the answer")
             question_e = model.encode(question, convert_to_tensor=True)
             if selection == "Paragraphs":
                 sentences = extract_sentences_from_passages(context_passages)

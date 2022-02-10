@@ -11,7 +11,6 @@ def app():
            </div>
        """
     st.markdown(footer, unsafe_allow_html=True)
-    #st.title("How does it all work?")
 
     st.subheader("Intro")
     intro = """
@@ -36,12 +35,13 @@ def app():
     st.subheader("UI/UX")
     st.write("Each sentence in the generated answer ends with a coloured tooltip; the colour ranges from red to green. "
              "The tooltip contains a value representing answer sentence similarity to a specific sentence in the "
-             "Wikipedia context passages retrieved. If a sentence similarity is 1.0, the seq2seq model extracted and "
-             "copied the sentences verbatim from Wikipedia context passages to the answer. Lower values of sentence "
-             "similarity mean the seq2seq model is struggling to generate a relevant sentence for the questions asked. "
-             "Mouseover on the tooltip will show the sentence from the Wikipedia context passage. ")
+             "Wikipedia context passages retrieved.  Mouseover on the tooltip will show the sentence from the "
+             "Wikipedia context passage. If a sentence similarity is 1.0, the seq2seq model extracted and "
+             "copied the sentence verbatim from Wikipedia context passages to the answer. Lower values of sentence "
+             "similarity indicate the seq2seq model is struggling to generate a relevant sentence for the question "
+             "asked.")
     st.image("wikipedia_answer.png", caption="Answer with similarity tooltips")
-    st.write("Below the generated answer are questions-related Wikipedia context paragraphs (passages). One can view "
+    st.write("Below the generated answer are question-related Wikipedia context paragraphs (passages). One can view "
              "these passages in a raw format retrieved using the 'Paragraphs' select menu option. The 'Sentences' menu "
              "option shows the same paragraphs but on a sentence level. Finally, the 'Answer Similarity' menu option "
              "shows the most similar three sentences from context paragraphs to each sentence in the generated answer.")
@@ -64,11 +64,13 @@ def app():
     even downright wrong. However, if the question is elaborate and more specific, there is a decent chance of 
     getting a legible answer. LFQA systems are targeting ELI5 non-factoid type of questions. A general guideline 
     is - questions starting with why, what, and how are better suited than where and who questions. Be elaborate. 
-    For example, to ask a history-based question, Wikipedia Assistant is better suited to answer a question: 
-    "What was the objective of the German commando raid on Drvar in Yugoslavia in the Second World War?" than 
-    "Why did Germans raid Drvar?". A precise science question like "Why do airplane jet engines leave contrails 
-    in the sky?" has a good chance of getting a decent answer. Detailed and precise questions are more likely to 
-    match the right half a dozen relevant passages in a 20+ GB Wikipedia dump to construct a good answer.  
+    <br><br>
+    For example, to ask a science-based question, Wikipedia Assistant is better suited to answer the question: "Why do 
+    airplane jet engines leave contrails in the sky?" than "Why do contrails exist?". Detailed and precise questions 
+    are more likely to match the right half a dozen relevant passages in a 20+ GB Wikipedia dump to construct a good 
+    answer.
+    </div>
+    <br>  
     """
     st.write(tips)
     st.subheader("Technical details")
@@ -78,7 +80,7 @@ def app():
         and sent to a server to find the most relevant Wikipedia passages. The Wikipedia <a href="https://huggingface.co/datasets/kilt_wikipedia" target=_blank">passages</a> 
         were previously encoded using a passage <a href="https://huggingface.co/vblagoje/dpr-ctx_encoder-single-lfqa-wiki" target=_blank">encoder</a> and 
         stored in the <a href="https://github.com/facebookresearch/faiss" target=_blank">Faiss</a> index. The question matching passages (a.k.a context passages) are retrieved from the Faiss 
-        index and passed to a seq2seq <a href="https://huggingface.co/vblagoje/bart_lfqa" target=_blank">model</a> to 
+        index and passed to a BART-based seq2seq <a href="https://huggingface.co/vblagoje/bart_lfqa" target=_blank">model</a> to
         synthesize an original answer to the question. 
         
     </div>
