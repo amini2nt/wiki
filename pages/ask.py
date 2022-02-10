@@ -288,7 +288,7 @@ def app():
                         f'  {item["answer"]}',
                         f'<span style="background-color: #{similiarity_to_hex(score)}" class="tooltip">',
                             f'{format_score(score, precision=1)}',
-                f'<span class="tooltiptext">Wikipedia source:<br> {support_sentence} <br>Similarity: {format_score(score)}</span>'
+                f'<span class="tooltiptext"><b>Wikipedia source</b><br><br> {support_sentence} <br><br>Similarity: {format_score(score)}</span>'
                 ])
                 sentences += '</span>'                
             sentences += '</span>'                
@@ -317,7 +317,10 @@ def app():
             with col1:
                 st.subheader("Context")
             with col2:
-                selection = st.selectbox(label='Scope', options=('Paragraphs', 'Sentences', 'Answer Similarity'))
+                selection = st.selectbox(
+                    label="", 
+                    options=('Paragraphs', 'Sentences', 'Answer Similarity'), 
+                    help="Context is a set of articles fetched from wikipedia from which the model is creating the answer.")
 
             question_e = model.encode(question, convert_to_tensor=True)
             if selection == "Paragraphs":
