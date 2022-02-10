@@ -1,6 +1,6 @@
 import streamlit as st
 from multipage import MultiPage
-from pages import ask, settings
+from pages import ask, settings, info
 
 
 def init_session_key_value(key, value):
@@ -31,8 +31,9 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 # Add all your application here
-app.add_page("Home", ask.app)
-app.add_page("Settings", settings.app)
+app.add_page("Home", "house", ask.app)
+app.add_page("Settings", "gear", settings.app)
+app.add_page("Info", "info", info.app)
 
 # The main app
 app.run()

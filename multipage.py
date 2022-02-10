@@ -7,6 +7,7 @@ through an object oriented framework.
 import streamlit as st
 from streamlit_option_menu import option_menu
 
+
 # Define the multipage class to manage the multiple apps in our program
 class MultiPage:
     """Framework for combining multiple streamlit applications."""
@@ -15,7 +16,7 @@ class MultiPage:
         """Constructor class to generate a list which will store all our applications as an instance variable."""
         self.pages = []
 
-    def add_page(self, title, func) -> None:
+    def add_page(self, title, icon, func) -> None:
         """Class Method to Add pages to the project
 
         Args:
@@ -27,6 +28,7 @@ class MultiPage:
         self.pages.append(
             {
                 "title": title,
+                "icon": icon,
                 "function": func
             }
         )
@@ -52,12 +54,12 @@ class MultiPage:
         """, unsafe_allow_html=True)
 
         with st.sidebar:
-            selected = option_menu(None, [self.pages[0]['title'], self.pages[1]['title']], 
-                icons=['house', 'gear'], 
-                menu_icon="cast", default_index=0)
+            selected = option_menu(None, [page["title"] for page in self.pages],
+                                   icons=[page["icon"] for page in self.pages],
+                                   menu_icon="cast", default_index=0)
 
-        # run the app function
-        if selected == 'Home':
-            self.pages[0]['function']()
-        elif selected == 'Settings':
-            self.pages[1]['function']()
+        # Run the selected page
+        for index, item in enumerate(self.pages):
+            if item["title"] == selected:
+                self.pages[index]["function"]()
+                break
