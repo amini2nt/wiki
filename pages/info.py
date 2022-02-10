@@ -60,11 +60,13 @@ def app():
 
     st.subheader("Tips")
     tips = """
+    <div class="text">
     LFQA task is far from solved. Wikipedia Assistant will sometimes generate an answer unrelated to a question asked, 
     even downright wrong. However, if the question is elaborate and more specific, there is a decent chance of 
     getting a legible answer. LFQA systems are targeting ELI5 non-factoid type of questions. A general guideline 
     is - questions starting with why, what, and how are better suited than where and who questions. Be elaborate. 
     <br><br>
+
     For example, to ask a science-based question, Wikipedia Assistant is better suited to answer the question: "Why do 
     airplane jet engines leave contrails in the sky?" than "Why do contrails exist?". Detailed and precise questions 
     are more likely to match the right half a dozen relevant passages in a 20+ GB Wikipedia dump to construct a good 
@@ -72,7 +74,7 @@ def app():
     </div>
     <br>  
     """
-    st.write(tips)
+    st.markdown(tips, unsafe_allow_html=True)
     st.subheader("Technical details")
     techinical_intro = """    
     <div class="text">
