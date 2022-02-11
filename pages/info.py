@@ -7,7 +7,8 @@ def app():
     footer = """
            <div class="footer-custom">
                Streamlit app - <a href="https://www.linkedin.com/in/danijel-petkovic-573309144/" target="_blank">Danijel Petkovic</a>  |   
-               LFQA/DPR models - <a href="https://www.linkedin.com/in/blagojevicvladimir/" target="_blank">Vladimir Blagojevic</a>
+               LFQA/DPR models - <a href="https://www.linkedin.com/in/blagojevicvladimir/" target="_blank">Vladimir Blagojevic</a>   |
+               Guidance & Feedback - <a href="https://yjernite.github.io/" target="_blank">Yacine Jernite</a>
            </div>
        """
     st.markdown(footer, unsafe_allow_html=True)
@@ -37,7 +38,7 @@ def app():
              "The tooltip contains a value representing answer sentence similarity to a specific sentence in the "
              "Wikipedia context passages retrieved.  Mouseover on the tooltip will show the sentence from the "
              "Wikipedia context passage. If a sentence similarity is 1.0, the seq2seq model extracted and "
-             "copied the sentence verbatim from Wikipedia context passages to the answer. Lower values of sentence "
+             "copied the sentence verbatim from Wikipedia context passages. Lower values of sentence "
              "similarity indicate the seq2seq model is struggling to generate a relevant sentence for the question "
              "asked.")
     st.image("wikipedia_answer.png", caption="Answer with similarity tooltips")

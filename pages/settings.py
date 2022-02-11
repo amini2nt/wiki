@@ -51,7 +51,8 @@ def app():
         footer = """
             <div class="footer-custom">
                 Streamlit app - <a href="https://www.linkedin.com/in/danijel-petkovic-573309144/" target="_blank">Danijel Petkovic</a>  |   
-                LFQA/DPR models - <a href="https://www.linkedin.com/in/blagojevicvladimir/" target="_blank">Vladimir Blagojevic</a>
+                LFQA/DPR models - <a href="https://www.linkedin.com/in/blagojevicvladimir/" target="_blank">Vladimir Blagojevic</a>   |
+                Guidance & Feedback - <a href="https://yjernite.github.io/" target="_blank">Yacine Jernite</a>
             </div>
         """
         st.markdown(footer, unsafe_allow_html=True)
