@@ -50,7 +50,8 @@ def app():
     with st.form("settings"):
         footer = """
             <div class="footer-custom">
-                Streamlit app created by <a href="https://www.linkedin.com/in/danijel-petkovic-573309144/" target="_blank">Danijel Petkovic</a>
+                Streamlit app - <a href="https://www.linkedin.com/in/danijel-petkovic-573309144/" target="_blank">Danijel Petkovic</a>  |   
+                LFQA/DPR models - <a href="https://www.linkedin.com/in/blagojevicvladimir/" target="_blank">Vladimir Blagojevic</a>
             </div>
         """
         st.markdown(footer, unsafe_allow_html=True)

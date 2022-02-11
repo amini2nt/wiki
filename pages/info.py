@@ -77,7 +77,7 @@ def app():
     st.markdown(tips, unsafe_allow_html=True)
     st.subheader("Technical details")
     techinical_intro = """    
-    <div class="text">
+    <div class="text technical-details-info">
         A question asked will be encoded with an <a href="https://huggingface.co/vblagoje/dpr-question_encoder-single-lfqa-wiki" target=_blank">encoder</a> 
         and sent to a server to find the most relevant Wikipedia passages. The Wikipedia <a href="https://huggingface.co/datasets/kilt_wikipedia" target=_blank">passages</a> 
         were previously encoded using a passage <a href="https://huggingface.co/vblagoje/dpr-ctx_encoder-single-lfqa-wiki" target=_blank">encoder</a> and 
