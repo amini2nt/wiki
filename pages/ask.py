@@ -4,18 +4,19 @@ import re
 import time
 
 import nltk
+import numpy as np
 from nltk import tokenize
 
 nltk.download('punkt')
 from google.oauth2 import service_account
 from google.cloud import texttospeech
 
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 
 import jwt
 import requests
 import streamlit as st
-from sentence_transformers import SentenceTransformer, util
+from sentence_transformers import SentenceTransformer, util, CrossEncoder
 
 JWT_SECRET = st.secrets["api_secret"]
 JWT_ALGORITHM = st.secrets["api_algorithm"]
@@ -196,6 +197,18 @@ def similiarity_to_hex(similarity: float):
     return rgb_to_hex(similarity_color_picker(similarity))
 
 
+def rerank(question: str, passages: List[str], include_rank: int = 4) -> List[str]:
+    ce = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+    question_passage_combinations = [[question, p["text"]] for p in passages]
+
+    # Compute the similarity scores for these combinations
+    similarity_scores = ce.predict(question_passage_combinations)
+
+    # Sort the scores in decreasing order
+    sim_ranking_idx = np.flip(np.argsort(similarity_scores))
+    return [passages[rank_idx] for rank_idx in sim_ranking_idx[:include_rank]]
+
+
 def answer_to_context_similarity(generated_answer, context_passages, topk=3):
     context_sentences = extract_sentences_from_passages(context_passages)
     context_sentences_e = get_sentence_transformer_encoding(context_sentences)
@@ -239,6 +252,7 @@ def get_answer(question: str):
         if "error" in context_passages:
             resp = context_passages
         else:
+            context_passages = rerank(question, context_passages)
             conditioned_context = "<P> " + " <P> ".join([d["text"] for d in context_passages])
             model_input = f'question: {question} context: {conditioned_context}'
 
