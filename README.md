@@ -22,10 +22,10 @@ Color for Thumbnail gradient (red, yellow, green, blue, indigo, purple, pink, gr
 `colorTo`: _string_  
 Color for Thumbnail gradient (red, yellow, green, blue, indigo, purple, pink, gray)
 
-`sdk`: _string_  
+`sdk`: `streamlit`  
 Can be either `gradio` or `streamlit`
 
-`sdk_version` : _string_  
+`sdk_version` : `1.2.0`  
 Only applicable for `streamlit` SDK.  
 See [doc](https://hf.co/docs/hub/spaces) for more info on supported versions.
 
