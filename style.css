@@ -131,3 +131,48 @@ hr {
 .technical-details-info {
     margin-bottom: 100px;
 }
+
+.loader-wrapper {
+    display: flex;
+    align-items: center;
+    background-color: rgba(250, 202, 43, 0.2);
+    padding: 15px 20px;
+    border-radius: 6px;
+}
+
+.loader-wrapper p {
+    margin-bottom: 0;
+    margin-left: 20px;
+}
+
+.loader {
+    width: 30px;
+    height: 30px;
+    border: dotted 5px #868686;
+    border-radius: 100%;
+    animation: spin 1s linear infinite;
+}
+
+.loader-note {
+    font-size: 14px;
+    color: #b3b3b3;
+    margin-left: 5px;
+}
+
+@keyframes spin {
+  0% { 
+    transform: rotate(0deg) scale(0.8); 
+    border-top-color: transparent;
+    border-right-color: transparent;
+  }
+  50% { transform: rotate(180deg) scale(1.2);   
+    border-color: #949494; 
+    border-top-color: transparent;
+    border-right-color: transparent;
+  }
+  100% { transform: rotate(360deg) scale(0.8); 
+    border-color: #bbbbbb;     
+    border-top-color: transparent;
+    border-right-color: transparent;
+  }
+}

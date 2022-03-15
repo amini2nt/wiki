@@ -284,14 +284,27 @@ def app():
 
     question = st.text_input(
         label='Ask Wikipedia an open-ended question below; for example, "Why do airplanes leave contrails in the sky?"')
-    with st.spinner("Generating an answer..."):
-        question_response = get_answer(question)
+    
+    spinner = st.empty()
+    if question !="":
+        spinner.markdown(
+            f"""
+            <div class="loader-wrapper">
+            <div class="loader">
+            </div>
+            <p>Generating answer for: <b>{question}</b></p>
+            </div>
+            <label class="loader-note">Answer generation may take up to 20 sec. Please stand by.</label>
+        """,
+            unsafe_allow_html=True,
+        )
 
+    question_response = get_answer(question)
     if question_response:
         if "error" in question_response:
             st.warning(question_response["error"])
         else:
-
+            spinner.markdown(f"")
             generated_answer = question_response["answer"]
             context_passages = question_response["context_passages"]
             sentence_similarity = answer_to_context_similarity(generated_answer, context_passages, topk=3)
