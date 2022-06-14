@@ -1,5 +1,6 @@
 nltk
-streamlit
+click==8.0.3
+streamlit==1.8.0
 sentence_transformers
 requests
 pyjwt
