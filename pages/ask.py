@@ -1,3 +1,4 @@
+import logging
 import colorsys
 import json
 import re
@@ -28,6 +29,8 @@ headers = {"Authorization": f"Bearer {INFERENCE_TOKEN}"}
 API_URL = "https://api-inference.huggingface.co/models/vblagoje/bart_lfqa"
 API_URL_TTS = "https://api-inference.huggingface.co/models/espnet/kan-bayashi_ljspeech_joint_finetune_conformer_fastspeech2_hifigan"
 
+logger = logging.getLogger(__name__)
+
 
 def api_inference_lfqa(model_input: str):
     payload = {
@@ -50,6 +53,7 @@ def api_inference_lfqa(model_input: str):
         }
     }
     data = json.dumps(payload)
+    logger.debug(data)
     response = requests.request("POST", API_URL, headers=headers, data=data)
     return json.loads(response.content.decode("utf-8"))
 
@@ -272,7 +276,7 @@ def app():
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
     footer = """
         <div class="footer-custom">
-            Streamlit app - <a href="https://www.linkedin.com/in/danijel-petkovic-573309144/" target="_blank">Danijel Petkovic</a>  |   
+            Streamlit app - <a href="https://www.linkedin.com/in/danijel-petkovic-573309144/" target="_blank">Danijel Petkovic</a>  |
             LFQA/DPR models - <a href="https://www.linkedin.com/in/blagojevicvladimir/" target="_blank">Vladimir Blagojevic</a>   |
             Guidance & Feedback - <a href="https://yjernite.github.io/" target="_blank">Yacine Jernite</a> |
             <a href="https://towardsdatascience.com/long-form-qa-beyond-eli5-an-updated-dataset-and-approach-319cb841aabb" target="_blank">Blog</a>
@@ -284,7 +288,7 @@ def app():
 
     question = st.text_input(
         label='Ask Wikipedia an open-ended question below; for example, "Why do airplanes leave contrails in the sky?"')
-    
+
     spinner = st.empty()
     if question !="":
         spinner.markdown(
@@ -313,14 +317,14 @@ def app():
                 sentences += '<span>'
                 score = item["context"][0]["score"]
                 support_sentence = item["context"][0]["source"]
-                sentences += "".join([                    
+                sentences += "".join([
                         f'  {item["answer"]}',
                         f'<span style="background-color: #{similiarity_to_hex(score)}" class="tooltip">',
                             f'{format_score(score, precision=1)}',
                 f'<span class="tooltiptext"><b>Wikipedia source</b><br><br> {support_sentence} <br><br>Similarity: {format_score(score)}</span>'
                 ])
-                sentences += '</span>'                
-            sentences += '</span>'                
+                sentences += '</span>'
+            sentences += '</span>'
             st.markdown(sentences, unsafe_allow_html=True)
 
             with st.spinner("Generating audio..."):
@@ -342,13 +346,13 @@ def app():
             model = get_sentence_transformer()
 
             col1, col2 = st.columns(2)
-            
+
             with col1:
                 st.subheader("Context")
             with col2:
                 selection = st.selectbox(
-                    label="", 
-                    options=('Paragraphs', 'Sentences', 'Answer Similarity'), 
+                    label="",
+                    options=('Paragraphs', 'Sentences', 'Answer Similarity'),
                     help="Context represents Wikipedia passages used to generate the answer")
             question_e = model.encode(question, convert_to_tensor=True)
             if selection == "Paragraphs":
