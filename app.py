@@ -1,6 +1,16 @@
+import sys
+import logging
 import streamlit as st
 from multipage import MultiPage
 from pages import ask, settings, info
+
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(levelname)s %(asctime)s %(name)s:%(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)],
+    force=True,
+)
 
 
 def init_session_key_value(key, value):
