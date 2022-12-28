@@ -26,7 +26,7 @@ CONTEXT_API_URL = st.secrets["api_context"]
 LFQA_API_URL = st.secrets["api_lfqa"]
 
 headers = {"Authorization": f"Bearer {INFERENCE_TOKEN}"}
-API_URL = "https://api-inference.huggingface.co/models/vblagoje/bart_lfqa"
+API_URL = "https://api-inference.huggingface.co/models/askainet/bart_lfqa"
 API_URL_TTS = "https://api-inference.huggingface.co/models/espnet/kan-bayashi_ljspeech_joint_finetune_conformer_fastspeech2_hifigan"
 
 logger = logging.getLogger(__name__)
