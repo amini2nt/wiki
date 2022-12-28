@@ -152,4 +152,3 @@ cython_debug/
 .idea/
 out.flac
 out.mp3
-.streamlit
